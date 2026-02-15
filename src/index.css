@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+* {
+  font-family: "Noto Serif", serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
