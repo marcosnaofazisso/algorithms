@@ -1,4 +1,4 @@
-# Algorithm Visual Guide
+# Algorithm
 
 Um guia visual interativo para algoritmos de busca e ordenação, começando com Linear Search. O projeto apresenta visualizações passo a passo de como os algoritmos funcionam, combinando diagramas de fluxo com representações visuais dos dados.
 

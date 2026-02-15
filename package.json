@@ -20,14 +20,18 @@
   },
   "homepage": "https://github.com/marcosnaofazisso/algorithms#readme",
   "dependencies": {
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-switch": "^1.2.6",
     "@xyflow/react": "^12.10.0",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jotai": "^2.17.1",
     "lucide-react": "^0.564.0",
     "motion": "^12.34.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.1"
   },

@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from 'react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useAtom } from 'jotai';
+import { themeAtom } from '@/store/theme';
 import { Columns, Hand, Lock, LockOpen, Rows } from 'lucide-react';
 import {
   ReactFlow,
@@ -51,14 +52,25 @@ interface FlowDiagramProps {
 }
 
 function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiagramProps) {
-  const [panEnabled, setPanEnabled] = useState(true);
+  const [panEnabled, setPanEnabled] = useState(false);
   const [layout, setLayout] = useState<DiagramLayout>('vertical');
+  const [theme] = useAtom(themeAtom);
+  const isDark = theme === 'dark';
   const positions = getPositions(layout);
-  // Node styles: no transform/scale so the diagram stays static
+
+  const activeBg = isDark ? '#E5E7EB' : '#000000';
+  const activeFg = isDark ? '#000000' : '#FFFFFF';
+  const inactiveBg = isDark ? '#374151' : '#FFFFFF';
+  const inactiveFg = isDark ? '#E5E7EB' : '#000000';
+  const inactiveBorder = isDark ? '#4B5563' : '#E5E7EB';
+  const edgeActive = isDark ? '#E5E7EB' : '#000000';
+  const edgeInactive = '#9CA3AF';
+  const labelBg = isDark ? '#374151' : '#FFFFFF';
+
   const getNodeStyle = (_nodeId: FlowStep, isActive: boolean) => ({
-    background: isActive ? '#000000' : '#FFFFFF',
-    color: isActive ? '#FFFFFF' : '#000000',
-    border: isActive ? '2px solid #000000' : '1px solid #E5E7EB',
+    background: isActive ? activeBg : inactiveBg,
+    color: isActive ? activeFg : inactiveFg,
+    border: isActive ? `2px solid ${activeBg}` : `1px solid ${inactiveBorder}`,
     borderRadius: '8px',
     padding: '12px 16px',
     fontSize: '14px',
@@ -70,9 +82,9 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
   });
 
   const getDecisionNodeStyle = (_nodeId: FlowStep, isActive: boolean) => ({
-    background: isActive ? '#000000' : '#FFFFFF',
-    color: isActive ? '#FFFFFF' : '#000000',
-    border: isActive ? '2px solid #000000' : '1px solid #E5E7EB',
+    background: isActive ? activeBg : inactiveBg,
+    color: isActive ? activeFg : inactiveFg,
+    border: isActive ? `2px solid ${activeBg}` : `1px solid ${inactiveBorder}`,
     borderRadius: '8px',
     padding: '12px',
     fontSize: '13px',
@@ -136,21 +148,21 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
       data: { label: 'Return -1' },
       style: getNodeStyle('not-found', currentStep === 'not-found'),
     },
-  ], [currentStep, layout]);
+  ], [currentStep, layout, isDark]);
 
   const initialEdges: Edge[] = useMemo(() => [
     {
       id: 'e-start-init',
       source: 'start',
       target: 'init',
-      style: { stroke: currentStep === 'start' ? '#000000' : '#9CA3AF', strokeWidth: currentStep === 'start' ? 2.5 : 1.5 },
+      style: { stroke: currentStep === 'start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'start' ? 2.5 : 1.5 },
       animated: currentStep === 'start',
     },
     {
       id: 'e-init-check',
       source: 'init',
       target: 'check-length',
-      style: { stroke: currentStep === 'init' ? '#000000' : '#9CA3AF', strokeWidth: currentStep === 'init' ? 2.5 : 1.5 },
+      style: { stroke: currentStep === 'init' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'init' ? 2.5 : 1.5 },
       animated: currentStep === 'init',
     },
     {
@@ -158,50 +170,50 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
       source: 'check-length',
       target: 'compare',
       label: 'Yes',
-      style: { stroke: currentStep === 'check-length' ? '#000000' : '#9CA3AF', strokeWidth: currentStep === 'check-length' ? 2.5 : 1.5 },
+      style: { stroke: currentStep === 'check-length' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'check-length' ? 2.5 : 1.5 },
       animated: currentStep === 'check-length',
       labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' },
-      labelBgStyle: { fill: '#FFFFFF' },
+      labelBgStyle: { fill: labelBg },
     },
     {
       id: 'e-check-notfound',
       source: 'check-length',
       target: 'not-found',
       label: 'No',
-      style: { stroke: '#9CA3AF', strokeWidth: 1.5 },
+      style: { stroke: edgeInactive, strokeWidth: 1.5 },
       animated: false,
       labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' },
-      labelBgStyle: { fill: '#FFFFFF' },
+      labelBgStyle: { fill: labelBg },
     },
     {
       id: 'e-compare-found',
       source: 'compare',
       target: 'found',
       label: 'Yes',
-      style: { stroke: currentStep === 'compare' || currentStep === 'found' ? '#000000' : '#9CA3AF', strokeWidth: currentStep === 'compare' || currentStep === 'found' ? 2.5 : 1.5 },
+      style: { stroke: currentStep === 'compare' || currentStep === 'found' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'compare' || currentStep === 'found' ? 2.5 : 1.5 },
       animated: currentStep === 'compare' || currentStep === 'found',
       labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' },
-      labelBgStyle: { fill: '#FFFFFF' },
+      labelBgStyle: { fill: labelBg },
     },
     {
       id: 'e-compare-increment',
       source: 'compare',
       target: 'increment',
       label: 'No',
-      style: { stroke: currentStep === 'increment' ? '#000000' : '#9CA3AF', strokeWidth: currentStep === 'increment' ? 2.5 : 1.5 },
+      style: { stroke: currentStep === 'increment' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'increment' ? 2.5 : 1.5 },
       animated: currentStep === 'increment',
       labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' },
-      labelBgStyle: { fill: '#FFFFFF' },
+      labelBgStyle: { fill: labelBg },
     },
     {
       id: 'e-increment-check',
       source: 'increment',
       target: 'check-length',
-      style: { stroke: '#9CA3AF', strokeWidth: 1.5 },
+      style: { stroke: edgeInactive, strokeWidth: 1.5 },
       type: 'smoothstep',
       animated: false,
     },
-  ], [currentStep]);
+  ], [currentStep, isDark]);
 
   const togglePan = () => setPanEnabled((p) => !p);
 
@@ -222,7 +234,14 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
       current.map((edge) => {
         const fromInitial = initialEdges.find((e) => e.id === edge.id);
         return fromInitial
-          ? { ...edge, style: fromInitial.style, animated: fromInitial.animated, label: fromInitial.label }
+          ? {
+              ...edge,
+              style: fromInitial.style,
+              animated: fromInitial.animated,
+              label: fromInitial.label,
+              labelStyle: fromInitial.labelStyle,
+              labelBgStyle: fromInitial.labelBgStyle,
+            }
           : edge;
       })
     );
@@ -242,7 +261,7 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
   }, [layout, setNodes, fitView]);
 
   return (
-    <div className="w-full border border-gray-200 rounded-lg overflow-hidden bg-white" style={{ width: '100%', height: 360 }}>
+    <div className="w-full border border-gray-200 dark:border-gray-500 rounded-lg overflow-hidden bg-white dark:bg-[#0f1117]" style={{ width: '100%', height: 360 }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -263,7 +282,7 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
         maxZoom={1.5}
         style={{ width: '100%', height: '100%' }}
       >
-        <Background color="#E5E7EB" gap={16} size={1} />
+        <Background color={isDark ? '#4B5563' : '#E5E7EB'} gap={16} size={1} />
         <Controls position="bottom-left" showInteractive={false}>
           <ControlButton
             onClick={() => setLayout((l) => (l === 'vertical' ? 'horizontal' : 'vertical'))}

@@ -62,7 +62,7 @@ export default function TargetCombobox({
       />
       {open && uniqueOptions.length > 0 && (
         <ul
-          className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-sm"
+          className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-gray-200 dark:border-gray-500 bg-white dark:bg-[#0f1117] py-1 shadow-sm"
           role="listbox"
         >
           {uniqueOptions.map((num) => (
@@ -71,8 +71,8 @@ export default function TargetCombobox({
               role="option"
               aria-selected={value === String(num)}
               className={cn(
-                'cursor-pointer px-3 py-1.5 text-sm hover:bg-gray-100',
-                value === String(num) && 'bg-gray-200 font-medium'
+                'cursor-pointer px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-50',
+                value === String(num) && 'bg-gray-200 dark:bg-gray-600 font-medium'
               )}
               onMouseDown={(e) => {
                 e.preventDefault();

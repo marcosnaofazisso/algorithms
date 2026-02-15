@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { Pause, Play, Square, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pause, Play, Square, Trash2 } from 'lucide-react';
 import { Algorithm } from '@/types/algorithms';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select } from './ui/select';
@@ -23,6 +24,57 @@ const SPEED_DELAY_MS: Record<Speed, number> = {
 
 interface LinearSearchVizProps {
   algorithm: Algorithm;
+}
+
+interface AlgorithmReadMoreProps {
+  whatFor?: string;
+  bestUseCase?: string;
+  performance?: string;
+}
+
+function AlgorithmReadMore({ whatFor, bestUseCase, performance }: AlgorithmReadMoreProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mt-3">
+      <div className="flex justify-end">
+        <CollapsibleTrigger className="flex items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer focus:outline-none">
+          {open ? (
+            <>
+              <ChevronUp className="size-3 shrink-0" />
+              Read less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="size-3 shrink-0" />
+              Read more
+            </>
+          )}
+        </CollapsibleTrigger>
+      </div>
+      <CollapsibleContent className="overflow-hidden">
+        <div className="mt-3 space-y-3 text-sm text-black dark:text-gray-200 read-more-content">
+          {whatFor && (
+            <div>
+              <p className="text-xs font-semibold text-black dark:text-gray-200 mb-0.5">What it&apos;s for</p>
+              <p>{whatFor}</p>
+            </div>
+          )}
+          {bestUseCase && (
+            <div>
+              <p className="text-xs font-semibold text-black dark:text-gray-200 mb-0.5">Best use case</p>
+              <p>{bestUseCase}</p>
+            </div>
+          )}
+          {performance && (
+            <div>
+              <p className="text-xs font-semibold text-black dark:text-gray-200 mb-0.5">Performance</p>
+              <p>{performance}</p>
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
 }
 
 // Utility function to generate random array
@@ -237,22 +289,29 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
         <CardContent className="py-2 px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div>
-              <p className="text-xs font-medium text-gray-600">Best Case</p>
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Best Case</p>
               <p className="font-bold">{algorithm.bestCase}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600">Average Case</p>
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Average Case</p>
               <p className="font-bold">{algorithm.averageCase}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600">Worst Case</p>
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Worst Case</p>
               <p className="font-bold">{algorithm.worstCase}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600">Space</p>
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Space</p>
               <p className="font-bold">{algorithm.spaceComplexity}</p>
             </div>
           </div>
+          {(algorithm.whatFor ?? algorithm.bestUseCase ?? algorithm.performance) && (
+            <AlgorithmReadMore
+              whatFor={algorithm.whatFor}
+              bestUseCase={algorithm.bestUseCase}
+              performance={algorithm.performance}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -266,12 +325,12 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
             </CardHeader>
             <CardContent className="space-y-2 px-4 pb-4">
               <div>
-                <p className="text-xs font-medium mb-1 text-gray-600">Speed</p>
+                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Speed</p>
                 <Select
                   value={speed}
                   onChange={(e) => setSpeed(e.target.value as Speed)}
                   disabled={isRunning}
-                  className="h-8 text-xs w-full"
+                  className="h-8 text-xs w-full hover:cursor-pointer"
                 >
                   <option value="slow">Slow</option>
                   <option value="normal">Normal</option>
@@ -279,7 +338,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                 </Select>
               </div>
               <div>
-                <p className="text-xs font-medium mb-1 text-gray-600">Array size</p>
+                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300 ">Array size</p>
                 <div className="flex gap-1.5">
                   <Input
                     type="number"
@@ -314,13 +373,13 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                       setArraySize(n);
                     }}
                     disabled={isRunning}
-                    className="h-8 text-xs flex-1 min-w-0"
+                    className="h-8 text-xs flex-1 min-w-0 hover:cursor-pointer"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 w-8 shrink-0 p-0"
+                    className="h-8 w-8 shrink-0 p-0 hover:cursor-pointer"
                     onClick={handleApplyArraySize}
                     disabled={isRunning}
                     title="Apply array size"
@@ -330,7 +389,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                 </div>
               </div>
               <div>
-                <p className="text-xs font-medium mb-1 text-gray-600">Target</p>
+                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Target</p>
                 <TargetCombobox
                   options={data}
                   value={targetInput}
@@ -339,8 +398,8 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                   placeholder="Select or type"
                 />
               </div>
-              <div className="flex gap-1.5 pt-1">
-                <Button onClick={handleReset} variant="outline" size="sm" className="flex-1">
+              <div className="flex gap-1.5 pt-1 ">
+                <Button onClick={handleReset} variant="outline" size="sm" className="flex-1 hover:cursor-pointer">
                   Reset
                 </Button>
                 <Button
@@ -348,7 +407,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                   disabled={!isRunning}
                   variant="outline"
                   size="sm"
-                  className="shrink-0"
+                  className="shrink-0 bg-[#fca5a5] border-[#fca5a5] hover:bg-[#f87171] hover:border-[#f87171] text-red-800 dark:bg-red-900/60 dark:border-red-700 dark:text-[#fecaca] dark:hover:bg-red-800/50 dark:hover:border-red-600"
                   title="Stop (restart from beginning)"
                 >
                   <Square className="size-4" />
@@ -357,7 +416,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                   onClick={handleStart}
                   disabled={!isRunning && !targetInput.trim()}
                   size="sm"
-                  className="h-8 w-8 p-0 shrink-0"
+                  className="h-8 w-8 p-0 shrink-0 bg-[#86efac] border-[#86efac] hover:bg-[#4ade80] hover:border-[#4ade80] text-green-800 dark:bg-green-800/50 dark:border-green-600 dark:text-[#86efac] dark:hover:bg-green-700/50 dark:hover:border-green-500 cursor-pointer"
                   title={isRunning ? (isPaused ? 'Resume' : 'Pause') : 'Start'}
                 >
                   {isRunning && !isPaused ? <Pause className="size-4" /> : <Play className="size-4" />}
@@ -392,7 +451,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 shrink-0"
+                className="h-8 w-8 p-0 shrink-0 cursor-pointer"
                 onClick={() => setLogEntries([])}
                 disabled={logEntries.length === 0}
                 title="Clear logs"
@@ -403,11 +462,11 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
             <CardContent className="flex flex-col min-h-[360px] max-h-[360px] overflow-hidden p-0">
               <Terminal scrollRef={logScrollRef} className="min-h-0 flex-1 overflow-hidden h-full" sequence={false}>
                 {logEntries.length === 0 ? (
-                  <TerminalLine className="text-gray-500">Steps appear when you run the search.</TerminalLine>
+                  <TerminalLine className="text-gray-500 dark:text-gray-400">Steps appear when you run the search.</TerminalLine>
                 ) : (
                   logEntries.map((entry, idx) => (
                     <TerminalLine key={idx}>
-                      <span className="text-gray-400">[{idx + 1}]</span> {entry}
+                      <span className="text-gray-400 dark:text-gray-400">[{idx + 1}]</span> {entry}
                     </TerminalLine>
                   ))
                 )}

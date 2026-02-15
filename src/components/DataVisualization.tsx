@@ -42,12 +42,12 @@ export default function DataVisualization({ state, lastRunDurationMs, speed = 'n
 
   const getBoxStyle = (index: number) => {
     if (found && index === currentIndex) {
-      return 'border-2 border-black bg-black text-white shadow-lg animate-pulse';
+      return 'border-2 border-black dark:border-white bg-black dark:bg-white text-white dark:text-black shadow-lg animate-pulse';
     }
     if (index === currentIndex && !isComplete) {
-      return 'border-2 border-black bg-black text-white shadow-md scale-105';
+      return 'border-2 border-black dark:border-white bg-black dark:bg-white text-white dark:text-black shadow-md scale-105';
     }
-    return 'border border-gray-300 bg-white text-black shadow-sm';
+    return 'border border-gray-300 dark:border-gray-500 bg-white dark:bg-[#0f1117] text-black dark:text-gray-50 shadow-sm';
   };
 
   return (
@@ -55,8 +55,8 @@ export default function DataVisualization({ state, lastRunDurationMs, speed = 'n
       <CardHeader className="py-2 px-4">
         <CardTitle className="text-base">Array Visualization</CardTitle>
         {targetValue !== null && (
-          <p className="text-xs mt-1 text-gray-600">
-            Searching for: <span className="font-bold text-black">{targetValue}</span>
+          <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">
+            Searching for: <span className="font-bold text-black dark:text-white">{targetValue}</span>
           </p>
         )}
       </CardHeader>
@@ -84,22 +84,22 @@ export default function DataVisualization({ state, lastRunDurationMs, speed = 'n
         </div>
         <div className="mt-3 text-center text-xs">
           {!isComplete && currentIndex >= 0 && (
-            <p>Checking index {currentIndex}: arr[{currentIndex}] = {data[currentIndex]}</p>
+            <p className="text-gray-700 dark:text-gray-200">Checking index {currentIndex}: arr[{currentIndex}] = {data[currentIndex]}</p>
           )}
           {isComplete && found && (
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg inline-block border border-green-200">
+              <div className="bg-green-100 dark:bg-green-950/60 text-green-800 dark:text-green-100 px-3 py-2 rounded-lg inline-block border border-green-200 dark:border-green-700">
                 <p className="font-bold">✓ Element {targetValue} found at index {currentIndex}!</p>
               </div>
               {lastRunDurationMs != null && (
-                <div className="text-gray-600 text-xs px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 inline-block">
+                <div className="text-gray-600 dark:text-gray-300 text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-[#0f1117] inline-block">
                   Duration: {(lastRunDurationMs / 1000).toFixed(1)} seconds ({lastRunDurationMs}ms)
                 </div>
               )}
             </div>
           )}
           {isComplete && !found && (
-            <p className="font-bold">✗ Element {targetValue} not found in array</p>
+            <p className="font-bold text-gray-800 dark:text-gray-100">✗ Element {targetValue} not found in array</p>
           )}
         </div>
       </CardContent>

@@ -39,13 +39,13 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
               </option>
             ))}
           </Select>
-          <Button size="sm" variant="outline" onClick={handleCopy} className="h-8 text-xs">
+          <Button size="sm" variant="outline" onClick={handleCopy} className="h-8 text-xs cursor-pointer">
             Copy
           </Button>
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">
-        <pre className="overflow-x-auto bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs">
+        <pre className="overflow-x-auto bg-gray-50 dark:bg-[#0a0c10] border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-xs text-gray-900 dark:text-gray-50">
           <code
             className="font-mono"
             style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}

@@ -67,10 +67,10 @@ export function MagicCard({
     <motion.div
       onPointerMove={handlePointerMove}
       onPointerLeave={reset}
-      className={cn("group relative overflow-hidden rounded-lg border border-gray-200", className)}
+      className={cn("group relative overflow-hidden", className)}
     >
       <motion.div
-        className="pointer-events-none absolute -inset-px rounded-lg opacity-[var(--spotlight)]"
+        className="pointer-events-none absolute -inset-px opacity-[var(--spotlight)]"
         style={{
           background: gradient,
           ["--spotlight" as string]: gradientOpacity,

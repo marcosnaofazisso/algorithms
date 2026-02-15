@@ -1,39 +1,65 @@
-import { useState } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { algorithms } from '@/data/algorithms';
 import AlgorithmSelector from './AlgorithmSelector';
 import LinearSearchViz from './LinearSearchViz';
+import HomePage from './HomePage';
+import { ThemeSwitch } from './ThemeSwitch';
 import { Separator } from './ui/separator';
 
 export default function AlgorithmLayout() {
-  const [selectedAlgorithmId, setSelectedAlgorithmId] = useState('linear-search');
+  const { algorithmId } = useParams<{ algorithmId: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const selectedAlgorithm = algorithms.find(
-    (algo) => algo.id === selectedAlgorithmId
-  );
+  const isHome = location.pathname === '/' || location.pathname === '/home';
+  const selectedValue = isHome ? 'home' : (algorithmId ?? 'home');
+  const selectedAlgorithm = algorithmId
+    ? algorithms.find((algo) => algo.id === algorithmId)
+    : null;
+
+  const handleSelect = (value: string) => {
+    if (value === 'home') {
+      navigate('/');
+      return;
+    }
+    navigate(`/${value}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-white dark:from-[#0a0c10] dark:to-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1 tracking-tight">Algorithm Visual Guide</h1>
-            <p className="text-sm text-gray-600">Interactive visualizations of search and sorting algorithms</p>
+            <h1 className="text-2xl font-bold mb-1 tracking-tight text-gray-900 dark:text-white">
+              Algorithm
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Interactive visualizations of search and sorting algorithms
+            </p>
           </div>
-          <AlgorithmSelector
-            algorithms={algorithms}
-            selectedId={selectedAlgorithmId}
-            onSelect={setSelectedAlgorithmId}
-          />
+          <div className="flex items-center gap-2">
+            <AlgorithmSelector
+              algorithms={algorithms}
+              selectedValue={selectedValue}
+              onSelect={handleSelect}
+            />
+            <ThemeSwitch />
+          </div>
         </header>
 
-        <Separator className="mb-4" />
+        <Separator className="mb-4 dark:bg-gray-600" />
 
-        {/* Algorithm Visualization */}
-        {selectedAlgorithm && (
+        {isHome ? (
+          <HomePage />
+        ) : selectedAlgorithm ? (
           <div>
             {selectedAlgorithm.id === 'linear-search' && (
               <LinearSearchViz algorithm={selectedAlgorithm} />
             )}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-gray-600 dark:text-gray-300">
+            Algorithm not found. <Link to="/" className="underline">Go home</Link>.
           </div>
         )}
       </div>

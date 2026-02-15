@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: dark mode by class on html (not media query) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 * {
   font-family: "Noto Serif", serif;
   font-optical-sizing: auto;
@@ -9,4 +12,80 @@
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Read more collapsible – open animation */
+@keyframes read-more-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+[data-state="open"] .read-more-content {
+  animation: read-more-in 0.28s ease-out;
+}
+
+/* View Transitions for theme toggler (Magic UI) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* React Flow controls panel – match app card style */
+.react-flow__controls {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(229 231 235);
+  background: white;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  border-bottom: 1px solid rgb(229 231 235);
+  background: white;
+  color: #111827;
+  fill: currentColor;
+  cursor: pointer;
+}
+.react-flow__controls-button:hover:not(:disabled) {
+  background: rgb(249 250 251);
+}
+.react-flow__controls-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+.react-flow__controls-button svg {
+  max-width: 1rem;
+  max-height: 1rem;
+}
+
+/* React Flow controls – dark mode */
+.dark .react-flow__controls {
+  background: #0f1117;
+  border-color: rgb(75 85 99);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+}
+.dark .react-flow__controls-button {
+  background: #0f1117;
+  border-color: rgb(55 65 81);
+  color: rgb(229 231 235);
+  fill: currentColor;
+}
+.dark .react-flow__controls-button:hover:not(:disabled) {
+  background: #1a1d24;
+}
+.dark .react-flow__controls-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.dark .react-flow__controls-button svg {
+  color: inherit;
+  fill: currentColor;
 }

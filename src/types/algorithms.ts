@@ -3,6 +3,12 @@ export interface Algorithm {
   name: string;
   category: 'search' | 'sorting';
   description: string;
+  /** What the algorithm is for (shown in "Read more") */
+  whatFor?: string;
+  /** Best use case and why (shown in "Read more") */
+  bestUseCase?: string;
+  /** Performance notes: is it slow/fast, when to use (shown in "Read more") */
+  performance?: string;
   bestCase: string;
   averageCase: string;
   worstCase: string;
