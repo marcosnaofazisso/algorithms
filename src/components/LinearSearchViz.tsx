@@ -1,16 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { Pause, Play, Square, Trash2 } from 'lucide-react';
 import { Algorithm } from '@/types/algorithms';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Separator } from './ui/separator';
+import { Select } from './ui/select';
 import DataVisualization from './DataVisualization';
 import FlowDiagram from './FlowDiagram';
 import CodeSnippet from './CodeSnippet';
 import TargetCombobox from './TargetCombobox';
 import { Terminal, TerminalLine } from './ui/terminal';
 import { linearSearchGenerator, AnimationStep } from '@/lib/linearSearch';
+
+export type Speed = 'slow' | 'normal' | 'fast';
+
+const SPEED_DELAY_MS: Record<Speed, number> = {
+  slow: 1600,
+  normal: 800,
+  fast: 200,
+};
 
 interface LinearSearchVizProps {
   algorithm: Algorithm;
@@ -34,14 +43,16 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
   const [arraySizeInput, setArraySizeInput] = useState<string>(String(DEFAULT_ARRAY_SIZE));
   const [diagramLocked, setDiagramLocked] = useState(true);
   const [targetValue, setTargetValue] = useState<number | null>(null);
-  const [manualInput, setManualInput] = useState<string>('');
   const [targetInput, setTargetInput] = useState<string>('');
   const [currentStep, setCurrentStep] = useState<AnimationStep | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
-  const [showCustomNumbers, setShowCustomNumbers] = useState(false);
+  const [speed, setSpeed] = useState<Speed>('normal');
   const [lastRunDurationMs, setLastRunDurationMs] = useState<number | null>(null);
   const generatorRef = useRef<AsyncGenerator<AnimationStep> | null>(null);
+  const stoppedRef = useRef(false);
+  const isPausedRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
   const runStartTimeRef = useRef<number | null>(null);
 
@@ -84,43 +95,38 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       return;
     }
     if (n > MAX_ARRAY_SIZE) {
-      toast.error(`Maximum array size is ${MAX_ARRAY_SIZE}.`);
+      setArraySizeInput(String(MAX_ARRAY_SIZE));
+      toast.warning(`Maximum array size is ${MAX_ARRAY_SIZE}.`, {
+      style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+    });
       return;
     }
     applyArraySize(n);
-  };
-
-  const handleRandomArray = () => {
-    if (isRunning) return;
-    const size = Math.min(MAX_ARRAY_SIZE, Math.max(1, arraySize));
-    setArraySize(size);
-    setArraySizeInput(String(size));
-    setData(generateRandomArray(size));
-    setCurrentStep(null);
-    setTargetValue(null);
-    setTargetInput('');
-    setLogEntries([]);
-    toast.success('Numbers of array visualization changed!');
-  };
-
-  const handleManualInput = () => {
-    if (isRunning) return;
-    const numbers = manualInput
-      .split(',')
-      .map(n => parseInt(n.trim()))
-      .filter(n => !isNaN(n));
-    
-    if (numbers.length > 0) {
-      setData(numbers);
-      setCurrentStep(null);
-      setTargetValue(null);
-      setTargetInput('');
-      setManualInput('');
-      setLogEntries([]);
-    }
+    toast.success('Number of array visualization changed', {
+      style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+    });
   };
 
   const handleStart = () => {
+    if (isRunning && !isPaused) {
+      // Pause
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      isPausedRef.current = true;
+      setIsPaused(true);
+      toast.success('Algorithm has paused');
+      return;
+    }
+    if (isRunning && isPaused) {
+      // Resume
+      isPausedRef.current = false;
+      setIsPaused(false);
+      runNextStep();
+      return;
+    }
+
     const target = parseInt(targetInput, 10);
     if (isNaN(target) || targetInput.trim() === '') {
       toast.error('Select or type a valid target number.');
@@ -133,37 +139,58 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
 
     setTargetValue(target);
     setIsRunning(true);
+    setIsPaused(false);
+    isPausedRef.current = false;
     setLastRunDurationMs(null);
+    stoppedRef.current = false;
     runStartTimeRef.current = Date.now();
     generatorRef.current = linearSearchGenerator(data, target);
     runNextStep();
   };
 
+  const handleStop = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    generatorRef.current = null;
+    stoppedRef.current = true;
+    isPausedRef.current = false;
+    setIsPaused(false);
+    setIsRunning(false);
+    setCurrentStep(null);
+    setLogEntries([]);
+    toast.success('Algorithm has stopped');
+  };
+
   const runNextStep = async () => {
-    if (!generatorRef.current) return;
+    if (!generatorRef.current || stoppedRef.current) return;
 
     const { value, done } = await generatorRef.current.next();
     
-    if (done || !value) {
+    if (done || !value || stoppedRef.current) {
       setIsRunning(false);
       return;
     }
 
     setCurrentStep(value);
-    if (value.message) {
-      setLogEntries((prev) => [...prev, value.message]);
+    const msg = value.message;
+    if (msg) {
+      setLogEntries((prev) => [...prev, msg]);
     }
 
-    if (!value.isComplete) {
+    if (!value.isComplete && !stoppedRef.current && !isPausedRef.current) {
+      const delayMs = SPEED_DELAY_MS[speed];
       timeoutRef.current = window.setTimeout(() => {
         runNextStep();
-      }, 800); // 800ms delay between steps
-    } else {
-      if (runStartTimeRef.current != null) {
+      }, delayMs);
+    } else if (value.isComplete || stoppedRef.current) {
+      if (runStartTimeRef.current != null && !stoppedRef.current) {
         setLastRunDurationMs(Date.now() - runStartTimeRef.current);
       }
       setIsRunning(false);
     }
+    // when isPausedRef.current: do nothing, don't schedule next, don't set isRunning false
   };
 
   const handleReset = () => {
@@ -171,6 +198,9 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       clearTimeout(timeoutRef.current);
     }
     generatorRef.current = null;
+    stoppedRef.current = true;
+    isPausedRef.current = false;
+    setIsPaused(false);
     setIsRunning(false);
     setCurrentStep(null);
     setTargetValue(null);
@@ -180,6 +210,9 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     const size = Math.min(MAX_ARRAY_SIZE, Math.max(1, arraySize));
     setArraySizeInput(String(size));
     setData(generateRandomArray(size));
+    toast.success('Number of array visualization changed', {
+      style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+    });
   };
 
   const visualizationState = currentStep || {
@@ -233,18 +266,35 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
             </CardHeader>
             <CardContent className="space-y-2 px-4 pb-4">
               <div>
+                <p className="text-xs font-medium mb-1 text-gray-600">Speed</p>
+                <Select
+                  value={speed}
+                  onChange={(e) => setSpeed(e.target.value as Speed)}
+                  disabled={isRunning}
+                  className="h-8 text-xs w-full"
+                >
+                  <option value="slow">Slow</option>
+                  <option value="normal">Normal</option>
+                  <option value="fast">Fast</option>
+                </Select>
+              </div>
+              <div>
                 <p className="text-xs font-medium mb-1 text-gray-600">Array size</p>
                 <div className="flex gap-1.5">
                   <Input
-                    type="text"
+                    type="number"
+                    min={1}
+                    max={MAX_ARRAY_SIZE}
                     inputMode="numeric"
                     autoComplete="off"
                     value={arraySizeInput}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
-                      setArraySizeInput(raw);
+                      setArraySizeInput(raw === '' ? '' : raw);
                       const n = parseInt(raw, 10);
-                      setArraySize(raw === '' ? DEFAULT_ARRAY_SIZE : Math.min(MAX_ARRAY_SIZE, Math.max(1, isNaN(n) ? DEFAULT_ARRAY_SIZE : n)));
+                      if (raw !== '' && !isNaN(n)) {
+                        setArraySize(Math.min(MAX_ARRAY_SIZE, Math.max(1, n)));
+                      }
                     }}
                     onBlur={() => {
                       const n = parseInt(arraySizeInput, 10);
@@ -258,10 +308,8 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                         setArraySize(1);
                         return;
                       }
-                      if (n > MAX_ARRAY_SIZE) {
-                        setArraySize(MAX_ARRAY_SIZE);
-                        return;
-                      }
+                      // Don't clamp > MAX here so Check click can show warning
+                      if (n > MAX_ARRAY_SIZE) return;
                       setArraySizeInput(String(n));
                       setArraySize(n);
                     }}
@@ -282,49 +330,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                 </div>
               </div>
               <div>
-                <p className="text-xs font-medium mb-1 text-gray-600">Array</p>
-                <div className="flex flex-wrap gap-1.5">
-                  <Button
-                    onClick={handleRandomArray}
-                    disabled={isRunning}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 min-w-0"
-                  >
-                    Random
-                  </Button>
-                  <Button
-                    onClick={() => setShowCustomNumbers((s) => !s)}
-                    disabled={isRunning}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 min-w-0"
-                  >
-                    {showCustomNumbers ? 'Hide' : 'Add custom'}
-                  </Button>
-                </div>
-                {showCustomNumbers && (
-                  <div className="mt-2 flex gap-1.5">
-                    <Input
-                      type="text"
-                      placeholder="e.g. 4,2,7,1,9"
-                      value={manualInput}
-                      onChange={(e) => setManualInput(e.target.value)}
-                      disabled={isRunning}
-                      className="h-8 text-xs flex-1"
-                    />
-                    <Button
-                      onClick={handleManualInput}
-                      disabled={isRunning || !manualInput}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Set
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <div>
                 <p className="text-xs font-medium mb-1 text-gray-600">Target</p>
                 <TargetCombobox
                   options={data}
@@ -335,16 +340,27 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                 />
               </div>
               <div className="flex gap-1.5 pt-1">
-                <Button
-                  onClick={handleStart}
-                  disabled={isRunning || !targetInput.trim()}
-                  size="sm"
-                  className="flex-1"
-                >
-                  {isRunning ? 'Running...' : 'Start'}
-                </Button>
                 <Button onClick={handleReset} variant="outline" size="sm" className="flex-1">
                   Reset
+                </Button>
+                <Button
+                  onClick={handleStop}
+                  disabled={!isRunning}
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  title="Stop (restart from beginning)"
+                >
+                  <Square className="size-4" />
+                </Button>
+                <Button
+                  onClick={handleStart}
+                  disabled={!isRunning && !targetInput.trim()}
+                  size="sm"
+                  className="h-8 w-8 p-0 shrink-0"
+                  title={isRunning ? (isPaused ? 'Resume' : 'Pause') : 'Start'}
+                >
+                  {isRunning && !isPaused ? <Pause className="size-4" /> : <Play className="size-4" />}
                 </Button>
               </div>
             </CardContent>
@@ -370,8 +386,19 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
         {/* Right: Logs in Terminal style */}
         <div className="flex flex-col min-h-0">
           <Card className="w-full flex flex-col min-h-0">
-            <CardHeader className="py-2 px-4">
+            <CardHeader className="py-2 px-4 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base">Logs</CardTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 shrink-0"
+                onClick={() => setLogEntries([])}
+                disabled={logEntries.length === 0}
+                title="Clear logs"
+              >
+                <Trash2 className="size-4" />
+              </Button>
             </CardHeader>
             <CardContent className="flex flex-col min-h-[360px] max-h-[360px] overflow-hidden p-0">
               <Terminal scrollRef={logScrollRef} className="min-h-0 flex-1 overflow-hidden h-full" sequence={false}>
@@ -391,7 +418,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       </div>
 
       {/* Array Visualization - below Diagram */}
-      <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} />
+      <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
 
       {/* Code */}
       <CodeSnippet code={algorithm.pythonCode} />

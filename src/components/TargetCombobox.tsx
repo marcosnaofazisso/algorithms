@@ -36,10 +36,6 @@ export default function TargetCombobox({
   }, []);
 
   const uniqueOptions = [...new Set(options)].sort((a, b) => a - b);
-  const filter = inputValue.trim();
-  const filteredOptions = filter
-    ? uniqueOptions.filter((n) => String(n).toLowerCase().includes(filter.toLowerCase()))
-    : uniqueOptions;
 
   const handleSelect = (num: number) => {
     onChange(String(num));
@@ -60,21 +56,23 @@ export default function TargetCombobox({
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
         disabled={disabled}
         className="h-9 text-sm"
       />
-      {open && filteredOptions.length > 0 && (
+      {open && uniqueOptions.length > 0 && (
         <ul
           className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-sm"
           role="listbox"
         >
-          {filteredOptions.map((num) => (
+          {uniqueOptions.map((num) => (
             <li
               key={num}
               role="option"
+              aria-selected={value === String(num)}
               className={cn(
                 'cursor-pointer px-3 py-1.5 text-sm hover:bg-gray-100',
-                value === String(num) && 'bg-gray-100'
+                value === String(num) && 'bg-gray-200 font-medium'
               )}
               onMouseDown={(e) => {
                 e.preventDefault();

@@ -1,5 +1,5 @@
-import { Select } from '@/components/ui/select';
 import { Algorithm } from '@/types/algorithms';
+import { Select } from '@/components/ui/select';
 
 interface AlgorithmSelectorProps {
   algorithms: Algorithm[];
@@ -7,28 +7,23 @@ interface AlgorithmSelectorProps {
   onSelect: (id: string) => void;
 }
 
-export default function AlgorithmSelector({ 
-  algorithms, 
-  selectedId, 
-  onSelect 
+export default function AlgorithmSelector({
+  algorithms,
+  selectedId,
+  onSelect,
 }: AlgorithmSelectorProps) {
   return (
-    <div className="w-full">
-      <label className="block text-sm font-medium mb-2">
-        Select Algorithm
-      </label>
-      <Select
-        value={selectedId}
-        onChange={(e) => onSelect(e.target.value)}
-        className="w-full"
-      >
-        <option value="">Choose an algorithm...</option>
-        {algorithms.map((algo) => (
-          <option key={algo.id} value={algo.id}>
-            {algo.name}
-          </option>
-        ))}
-      </Select>
-    </div>
+    <Select
+      value={selectedId}
+      onChange={(e) => onSelect(e.target.value)}
+      className="w-[180px] h-9 text-sm"
+    >
+      <option value="">Choose an algorithm...</option>
+      {algorithms.map((algo) => (
+        <option key={algo.id} value={algo.id}>
+          {algo.name}
+        </option>
+      ))}
+    </Select>
   );
 }

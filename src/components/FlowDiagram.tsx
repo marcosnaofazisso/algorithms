@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useState } from 'react';
+import { Hand, Lock, LockOpen } from 'lucide-react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -232,18 +233,14 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
             title={panEnabled ? 'Pan on (click to disable)' : 'Pan off (click to enable)'}
             style={{ background: panEnabled ? undefined : 'rgba(0,0,0,0.05)' }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a2 2 0 0 1-4 0V8Z"/></svg>
+            <Hand className="size-4" />
           </ControlButton>
           {onLockToggle && (
             <ControlButton
               onClick={onLockToggle}
               title={locked ? 'Unlock to move elements' : 'Lock elements'}
             >
-              {locked ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11V7a5 5 0 0 1 9.9-1"/><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/></svg>
-              )}
+              {locked ? <Lock className="size-4" /> : <LockOpen className="size-4" />}
             </ControlButton>
           )}
         </Controls>

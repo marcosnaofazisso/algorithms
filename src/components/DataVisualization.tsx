@@ -3,16 +3,26 @@ import confetti from 'canvas-confetti';
 import { VisualizationState } from '@/types/algorithms';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MagicCard } from './ui/magic-card';
+import type { Speed } from './LinearSearchViz';
 
 interface DataVisualizationProps {
   state: VisualizationState;
   /** Duration in ms of the last run (when complete). Shown next to success message. */
   lastRunDurationMs?: number | null;
+  /** Speed affects transition duration of array cells. */
+  speed?: Speed;
 }
 
-export default function DataVisualization({ state, lastRunDurationMs }: DataVisualizationProps) {
+const SPEED_DURATION_CLASS: Record<Speed, string> = {
+  slow: 'duration-500',
+  normal: 'duration-300',
+  fast: 'duration-150',
+};
+
+export default function DataVisualization({ state, lastRunDurationMs, speed = 'normal' }: DataVisualizationProps) {
   const { data, currentIndex, targetValue, found, isComplete } = state;
   const foundCellRef = useRef<HTMLDivElement | null>(null);
+  const transitionClass = SPEED_DURATION_CLASS[speed];
 
   useEffect(() => {
     if (found && currentIndex >= 0 && foundCellRef.current) {
@@ -63,7 +73,7 @@ export default function DataVisualization({ state, lastRunDurationMs }: DataVisu
               <div
                 ref={found && index === currentIndex ? foundCellRef : undefined}
                 className={`
-                  w-12 h-12 flex items-center justify-center text-base font-semibold rounded-lg transition-all duration-300
+                  w-12 h-12 flex items-center justify-center text-base font-semibold rounded-lg transition-all ${transitionClass}
                   ${getBoxStyle(index)}
                 `}
               >
