@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useState } from 'react';
-import { Hand, Lock, LockOpen } from 'lucide-react';
+import { Columns, Hand, Lock, LockOpen, Rows } from 'lucide-react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -16,6 +16,33 @@ import {
 import '@xyflow/react/dist/style.css';
 import { FlowStep } from '@/types/algorithms';
 
+type DiagramLayout = 'vertical' | 'horizontal';
+
+const VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
+  start: { x: 250, y: 0 },
+  init: { x: 250, y: 100 },
+  'check-length': { x: 220, y: 200 },
+  compare: { x: 200, y: 320 },
+  found: { x: 450, y: 320 },
+  increment: { x: 50, y: 440 },
+  'not-found': { x: 450, y: 200 },
+};
+
+// Horizontal layout: generous spacing (260px x, 140px y) so edges are clearly visible
+const HORIZONTAL_POSITIONS: Record<string, { x: number; y: number }> = {
+  start: { x: 0, y: 200 },
+  init: { x: 260, y: 200 },
+  'check-length': { x: 520, y: 200 },
+  compare: { x: 780, y: 340 },
+  found: { x: 1040, y: 200 },
+  increment: { x: 780, y: 480 },
+  'not-found': { x: 780, y: 60 },
+};
+
+function getPositions(layout: DiagramLayout): Record<string, { x: number; y: number }> {
+  return layout === 'horizontal' ? HORIZONTAL_POSITIONS : VERTICAL_POSITIONS;
+}
+
 interface FlowDiagramProps {
   currentStep: FlowStep;
   /** When true, nodes cannot be dragged (lock elements). */
@@ -25,6 +52,8 @@ interface FlowDiagramProps {
 
 function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiagramProps) {
   const [panEnabled, setPanEnabled] = useState(true);
+  const [layout, setLayout] = useState<DiagramLayout>('vertical');
+  const positions = getPositions(layout);
   // Node styles: no transform/scale so the diagram stays static
   const getNodeStyle = (_nodeId: FlowStep, isActive: boolean) => ({
     background: isActive ? '#000000' : '#FFFFFF',
@@ -61,53 +90,53 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
     {
       id: 'start',
       type: 'default',
-      position: { x: 250, y: 0 },
+      position: positions.start,
       data: { label: 'Start' },
       style: getNodeStyle('start', currentStep === 'start'),
     },
     {
       id: 'init',
       type: 'default',
-      position: { x: 250, y: 100 },
+      position: positions.init,
       data: { label: 'i = 0' },
       style: getNodeStyle('init', currentStep === 'init'),
     },
     {
       id: 'check-length',
       type: 'default',
-      position: { x: 220, y: 200 },
+      position: positions['check-length'],
       data: { label: 'i < length?' },
       style: getDecisionNodeStyle('check-length', currentStep === 'check-length'),
     },
     {
       id: 'compare',
       type: 'default',
-      position: { x: 200, y: 320 },
+      position: positions.compare,
       data: { label: 'arr[i] == target?' },
       style: getDecisionNodeStyle('compare', currentStep === 'compare'),
     },
     {
       id: 'found',
       type: 'default',
-      position: { x: 450, y: 320 },
+      position: positions.found,
       data: { label: 'Return i' },
       style: getNodeStyle('found', currentStep === 'found'),
     },
     {
       id: 'increment',
       type: 'default',
-      position: { x: 50, y: 440 },
+      position: positions.increment,
       data: { label: 'i++' },
       style: getNodeStyle('increment', currentStep === 'increment'),
     },
     {
       id: 'not-found',
       type: 'default',
-      position: { x: 450, y: 200 },
+      position: positions['not-found'],
       data: { label: 'Return -1' },
       style: getNodeStyle('not-found', currentStep === 'not-found'),
     },
-  ], [currentStep]);
+  ], [currentStep, layout]);
 
   const initialEdges: Edge[] = useMemo(() => [
     {
@@ -204,6 +233,14 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
     fitView({ padding: 0.3, maxZoom: 1, duration: 0 });
   }, [fitView]);
 
+  // When layout changes: update node positions and fit view so edges remain visible
+  useEffect(() => {
+    const pos = getPositions(layout);
+    setNodes((nds) => nds.map((n) => ({ ...n, position: pos[n.id] ?? n.position })));
+    const t = setTimeout(() => fitView({ padding: 0.25, maxZoom: 1, duration: 300 }), 0);
+    return () => clearTimeout(t);
+  }, [layout, setNodes, fitView]);
+
   return (
     <div className="w-full border border-gray-200 rounded-lg overflow-hidden bg-white" style={{ width: '100%', height: 360 }}>
       <ReactFlow
@@ -228,6 +265,13 @@ function FlowDiagramInner({ currentStep, locked = true, onLockToggle }: FlowDiag
       >
         <Background color="#E5E7EB" gap={16} size={1} />
         <Controls position="bottom-left" showInteractive={false}>
+          <ControlButton
+            onClick={() => setLayout((l) => (l === 'vertical' ? 'horizontal' : 'vertical'))}
+            title={layout === 'vertical' ? 'Switch to horizontal layout' : 'Switch to vertical layout'}
+            style={{ background: layout === 'horizontal' ? 'rgba(0,0,0,0.06)' : undefined }}
+          >
+            {layout === 'vertical' ? <Columns className="size-4" /> : <Rows className="size-4" />}
+          </ControlButton>
           <ControlButton
             onClick={togglePan}
             title={panEnabled ? 'Pan on (click to disable)' : 'Pan off (click to enable)'}
