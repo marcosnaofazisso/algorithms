@@ -35,7 +35,7 @@ export async function* linearSearchGenerator(
 
   // Loop through array
   for (let i = 0; i < data.length; i++) {
-    // Check if i < length
+    // Check if i < length (true while in loop)
     yield {
       data,
       currentIndex: i,
@@ -44,10 +44,11 @@ export async function* linearSearchGenerator(
       isRunning: true,
       isComplete: false,
       flowStep: 'check-length',
-      message: `Checking if ${i} < ${data.length}`
+      message: `Checking if ${i} < ${data.length} (true)`
     };
 
     // Compare arr[i] with target
+    const compareResult = data[i] === target;
     yield {
       data,
       currentIndex: i,
@@ -56,7 +57,7 @@ export async function* linearSearchGenerator(
       isRunning: true,
       isComplete: false,
       flowStep: 'compare',
-      message: `Comparing arr[${i}] (${data[i]}) with target (${target})`
+      message: `Comparing arr[${i}] (${data[i]}) with target (${target}) (${compareResult})`
     };
 
     // If found
@@ -87,7 +88,7 @@ export async function* linearSearchGenerator(
     };
   }
 
-  // Not found - final check
+  // Not found - final check (i < length is false)
   yield {
     data,
     currentIndex: -1,
@@ -96,7 +97,7 @@ export async function* linearSearchGenerator(
     isRunning: false,
     isComplete: false,
     flowStep: 'check-length',
-    message: `Reached end of array (${data.length} >= ${data.length})`
+    message: `Reached end of array (${data.length} >= ${data.length}) (false)`
   };
 
   // Return -1 (not found)

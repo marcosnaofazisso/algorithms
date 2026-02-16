@@ -13,9 +13,8 @@ import CodeSnippet from './CodeSnippet';
 import TargetCombobox from './TargetCombobox';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './ui/resizable';
 import { Terminal, TerminalLine } from './ui/terminal';
-import { linearSearchGenerator, AnimationStep } from '@/lib/linearSearch';
-
-export type Speed = 'slow' | 'normal' | 'fast';
+import { binarySearchGenerator, BinarySearchAnimationStep } from '@/lib/binarySearch';
+import type { Speed } from './LinearSearchViz';
 
 const SPEED_DELAY_MS: Record<Speed, number> = {
   slow: 1600,
@@ -23,7 +22,7 @@ const SPEED_DELAY_MS: Record<Speed, number> = {
   fast: 200,
 };
 
-interface LinearSearchVizProps {
+interface BinarySearchVizProps {
   algorithm: Algorithm;
 }
 
@@ -78,38 +77,36 @@ function AlgorithmReadMore({ whatFor, bestUseCase, performance }: AlgorithmReadM
   );
 }
 
-// Utility function to generate random array
-const generateRandomArray = (size: number, min: number = 1, max: number = 20): number[] => {
+function generateSortedRandomArray(size: number, min: number = 1, max: number = 20): number[] {
   const arr: number[] = [];
   for (let i = 0; i < size; i++) {
     arr.push(Math.floor(Math.random() * (max - min + 1)) + min);
   }
-  return arr;
-};
+  return arr.sort((a, b) => a - b);
+}
 
 const DEFAULT_ARRAY_SIZE = 7;
 const MAX_ARRAY_SIZE = 20;
 
-export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
-  const [data, setData] = useState<number[]>(() => generateRandomArray(DEFAULT_ARRAY_SIZE));
+export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
+  const [data, setData] = useState<number[]>(() => generateSortedRandomArray(DEFAULT_ARRAY_SIZE));
   const [arraySize, setArraySize] = useState<number>(DEFAULT_ARRAY_SIZE);
   const [arraySizeInput, setArraySizeInput] = useState<string>(String(DEFAULT_ARRAY_SIZE));
   const [diagramLocked, setDiagramLocked] = useState(true);
   const [targetValue, setTargetValue] = useState<number | null>(null);
   const [targetInput, setTargetInput] = useState<string>('');
-  const [currentStep, setCurrentStep] = useState<AnimationStep | null>(null);
+  const [currentStep, setCurrentStep] = useState<BinarySearchAnimationStep | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
   const [speed, setSpeed] = useState<Speed>('normal');
   const [lastRunDurationMs, setLastRunDurationMs] = useState<number | null>(null);
-  const generatorRef = useRef<AsyncGenerator<AnimationStep> | null>(null);
+  const generatorRef = useRef<AsyncGenerator<BinarySearchAnimationStep> | null>(null);
   const stoppedRef = useRef(false);
   const isPausedRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
   const runStartTimeRef = useRef<number | null>(null);
 
-  // Scroll logs to the last line when a new entry is added (use the Terminal's scroll container)
   const logScrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (logEntries.length > 0 && logScrollRef.current) {
@@ -117,7 +114,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     }
   }, [logEntries]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -130,7 +126,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     const clamped = Math.min(MAX_ARRAY_SIZE, Math.max(1, size));
     setArraySize(clamped);
     setArraySizeInput(String(clamped));
-    setData(generateRandomArray(clamped));
+    setData(generateSortedRandomArray(clamped));
     setCurrentStep(null);
     setTargetValue(null);
     setTargetInput('');
@@ -141,28 +137,26 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     if (isRunning) return;
     const n = parseInt(arraySizeInput, 10);
     if (isNaN(n) || n < 1) {
-      const valid = DEFAULT_ARRAY_SIZE;
-      setArraySizeInput(String(valid));
-      setArraySize(valid);
-      applyArraySize(valid);
+      setArraySizeInput(String(DEFAULT_ARRAY_SIZE));
+      setArraySize(DEFAULT_ARRAY_SIZE);
+      applyArraySize(DEFAULT_ARRAY_SIZE);
       return;
     }
     if (n > MAX_ARRAY_SIZE) {
       setArraySizeInput(String(MAX_ARRAY_SIZE));
       toast.warning(`Maximum array size is ${MAX_ARRAY_SIZE}.`, {
-      style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
-    });
+        style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+      });
       return;
     }
     applyArraySize(n);
-    toast.success('Number of array visualization changed', {
+    toast.success('Array size changed (sorted array regenerated)', {
       style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
     });
   };
 
   const handleStart = () => {
     if (isRunning && !isPaused) {
-      // Pause
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -173,7 +167,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       return;
     }
     if (isRunning && isPaused) {
-      // Resume
       isPausedRef.current = false;
       setIsPaused(false);
       runNextStep();
@@ -185,8 +178,10 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       toast.error('Select or type a valid target number.');
       return;
     }
-    if (!data.includes(target)) {
-      toast.error('This number is not in the array. Please select a value from the list.');
+    const minVal = Math.min(...data);
+    const maxVal = Math.max(...data);
+    if (target < minVal || target > maxVal) {
+      toast.error(`Target must be within array range [${minVal}, ${maxVal}].`);
       return;
     }
 
@@ -197,7 +192,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     setLastRunDurationMs(null);
     stoppedRef.current = false;
     runStartTimeRef.current = Date.now();
-    generatorRef.current = linearSearchGenerator(data, target);
+    generatorRef.current = binarySearchGenerator(data, target);
     runNextStep();
   };
 
@@ -220,16 +215,15 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     if (!generatorRef.current || stoppedRef.current) return;
 
     const { value, done } = await generatorRef.current.next();
-    
+
     if (done || !value || stoppedRef.current) {
       setIsRunning(false);
       return;
     }
 
     setCurrentStep(value);
-    const msg = value.message;
-    if (msg) {
-      setLogEntries((prev) => [...prev, msg]);
+    if (value.message) {
+      setLogEntries((prev) => [...prev, value.message]);
     }
 
     if (!value.isComplete && !stoppedRef.current && !isPausedRef.current) {
@@ -243,7 +237,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       }
       setIsRunning(false);
     }
-    // when isPausedRef.current: do nothing, don't schedule next, don't set isRunning false
   };
 
   const handleReset = () => {
@@ -262,8 +255,8 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     setLastRunDurationMs(null);
     const size = Math.min(MAX_ARRAY_SIZE, Math.max(1, arraySize));
     setArraySizeInput(String(size));
-    setData(generateRandomArray(size));
-    toast.success('Number of array visualization changed', {
+    setData(generateSortedRandomArray(size));
+    toast.success('Array and state reset', {
       style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
     });
   };
@@ -281,7 +274,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
 
   return (
     <div className="space-y-4">
-      {/* Algorithm Info - compact */}
       <Card className="algorithm-info-container">
         <CardHeader className="algorithm-info-header py-2 px-4">
           <CardTitle className="text-xl">{algorithm.name}</CardTitle>
@@ -316,9 +308,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
         </CardContent>
       </Card>
 
-      {/* Controls (narrow) | Resizable: Diagram + Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-[185px_1fr] gap-4 min-h-0">
-        {/* Left: Controls only */}
         <div className="controls-container flex flex-col">
           <Card className="w-full">
             <CardHeader className="controls-header py-2 px-4">
@@ -339,7 +329,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                 </Select>
               </div>
               <div>
-                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300 ">Array size</p>
+                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Array size</p>
                 <div className="flex gap-1.5">
                   <Input
                     type="number"
@@ -368,7 +358,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                         setArraySize(1);
                         return;
                       }
-                      // Don't clamp > MAX here so Check click can show warning
                       if (n > MAX_ARRAY_SIZE) return;
                       setArraySizeInput(String(n));
                       setArraySize(n);
@@ -427,7 +416,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
           </Card>
         </div>
 
-        {/* Right: Diagram + Logs (resizable) */}
         <ResizablePanelGroup orientation="horizontal" className="rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden shrink-0" style={{ height: FLOW_DIAGRAM_HEIGHT_PX, minHeight: FLOW_DIAGRAM_HEIGHT_PX, maxHeight: FLOW_DIAGRAM_HEIGHT_PX }}>
           <ResizablePanel defaultSize={70} minSize={40} className="diagram-container flex flex-col min-h-0">
             <Card className="w-full h-full flex flex-col min-h-0 rounded-none border-0 border-r border-gray-200 dark:border-gray-600">
@@ -436,6 +424,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
               </CardHeader>
               <CardContent className="diagram-content p-0 !pb-0 flex-1 min-h-0">
                 <FlowDiagram
+                  variant="binary-search"
                   currentStep={flowStep}
                   locked={diagramLocked}
                   onLockToggle={() => setDiagramLocked((l) => !l)}
@@ -446,7 +435,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={30} minSize={20} className="logs-container flex flex-col min-h-0 overflow-hidden" style={{ maxHeight: FLOW_DIAGRAM_HEIGHT_PX }}>
             <Card className="w-full flex-1 flex flex-col min-h-0 rounded-none border-0 border-t-0 border-b-0 border-l-0">
-              <CardHeader className="logs-header p-2 px-4 flex flex-row items-center justify-between space-y-0 shrink-0">
+              <CardHeader className="logs-header p-1 px-4 flex flex-row items-center justify-between space-y-0 shrink-0">
                 <CardTitle className="text-base">Logs</CardTitle>
                 <Button
                   type="button"
@@ -478,10 +467,8 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
         </ResizablePanelGroup>
       </div>
 
-      {/* Array Visualization - below Diagram */}
       <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
 
-      {/* Code */}
       <CodeSnippet code={algorithm.pythonCode} />
     </div>
   );

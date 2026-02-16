@@ -43,6 +43,54 @@ if result != -1:
 else:
     print("Element not found")`,
   },
+  {
+    id: 'binary-search',
+    name: 'Binary Search',
+    category: 'search',
+    description:
+      'A search algorithm that repeatedly divides the sorted array in half, comparing the middle element with the target. It only works on sorted data and achieves O(log n) time in the worst case.',
+    whatFor:
+      'Binary search is used to find whether a value exists in a sorted collection and at which index. It is the standard choice when the data is sorted and you need fast lookups.',
+    bestUseCase:
+      'Best for sorted arrays or when you can afford to keep data sorted. Ideal for large datasets where linear search would be too slow, and when you need to find a single occurrence or the insertion point.',
+    performance:
+      'Requires sorted input. Worst and average case are O(log n) comparisons. Best case O(1) when the middle element is the target. Space is O(1) for the iterative version. For unsorted data, sort first or use linear search.',
+    bestCase: 'O(1)',
+    averageCase: 'O(log n)',
+    worstCase: 'O(log n)',
+    spaceComplexity: 'O(1)',
+    pythonCode: `def binary_search(arr, target):
+    """
+    Binary search in a sorted array.
+
+    Args:
+        arr: Sorted list of elements
+        target: Element to search for
+
+    Returns:
+        Index of the element if found, -1 otherwise
+    """
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        if arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+
+# Example usage (array must be sorted)
+arr = [1, 2, 3, 4, 5, 6, 7, 9]
+target = 5
+result = binary_search(arr, target)
+
+if result != -1:
+    print(f"Element found at index {result}")
+else:
+    print("Element not found")`,
+  },
 ];
 
 export const algorithmsByCategory = {
