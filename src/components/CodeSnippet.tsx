@@ -24,8 +24,8 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
   };
 
   return (
-    <Card>
-      <CardHeader className="py-2 px-4 flex flex-row items-center justify-between gap-2">
+    <Card className="code-container">
+      <CardHeader className="code-header py-2 px-4 flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-base">Code</CardTitle>
         <div className="flex items-center gap-2">
           <Select
@@ -44,7 +44,7 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
+      <CardContent className="code-content px-4 pb-4 pt-0">
         <pre className="overflow-x-auto bg-gray-50 dark:bg-[#0a0c10] border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-xs text-gray-900 dark:text-gray-50">
           <code
             className="font-mono"

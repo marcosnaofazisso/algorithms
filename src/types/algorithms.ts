@@ -23,13 +23,23 @@ export interface VisualizationState {
   found: boolean;
   isRunning: boolean;
   isComplete: boolean;
+  /** Binary search: left bound of search range */
+  left?: number;
+  /** Binary search: right bound of search range */
+  right?: number;
+  /** Binary search: middle index (can also use currentIndex as mid) */
+  mid?: number;
 }
 
-export type FlowStep = 
+export type FlowStep =
   | 'start'
   | 'init'
   | 'check-length'
   | 'compare'
   | 'found'
   | 'increment'
-  | 'not-found';
+  | 'not-found'
+  | 'check'
+  | 'mid'
+  | 'go-left'
+  | 'go-right';
