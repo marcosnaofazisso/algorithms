@@ -2,6 +2,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { algorithms } from '@/data/algorithms';
 import AlgorithmSelector from './AlgorithmSelector';
 import LinearSearchViz from './LinearSearchViz';
+import BinarySearchViz from './BinarySearchViz';
 import HomePage from './HomePage';
 import { ThemeSwitch } from './ThemeSwitch';
 import { Separator } from './ui/separator';
@@ -55,6 +56,9 @@ export default function AlgorithmLayout() {
           <div>
             {selectedAlgorithm.id === 'linear-search' && (
               <LinearSearchViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'binary-search' && (
+              <BinarySearchViz algorithm={selectedAlgorithm} />
             )}
           </div>
         ) : (

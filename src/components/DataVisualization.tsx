@@ -20,12 +20,16 @@ const SPEED_DURATION_CLASS: Record<Speed, string> = {
 };
 
 export default function DataVisualization({ state, lastRunDurationMs, speed = 'normal' }: DataVisualizationProps) {
-  const { data, currentIndex, targetValue, found, isComplete } = state;
+  const { data, currentIndex, targetValue, found, isComplete, left, right, mid } = state;
   const foundCellRef = useRef<HTMLDivElement | null>(null);
   const transitionClass = SPEED_DURATION_CLASS[speed];
+  const isBinarySearch = left !== undefined && right !== undefined;
+  const midIndex = mid ?? currentIndex;
+  const inRange = (index: number) =>
+    isBinarySearch && left !== undefined && right !== undefined && index >= left && index <= right;
 
   useEffect(() => {
-    if (found && currentIndex >= 0 && foundCellRef.current) {
+    if (found && midIndex >= 0 && foundCellRef.current) {
       const rect = foundCellRef.current.getBoundingClientRect();
       const x = (rect.left + rect.width / 2) / window.innerWidth;
       const y = (rect.top + rect.height / 2) / window.innerHeight;
@@ -38,29 +42,32 @@ export default function DataVisualization({ state, lastRunDurationMs, speed = 'n
         scalar: 0.8,
       });
     }
-  }, [found, currentIndex]);
+  }, [found, midIndex]);
 
   const getBoxStyle = (index: number) => {
-    if (found && index === currentIndex) {
+    if (found && index === midIndex) {
       return 'border-2 border-black dark:border-white bg-black dark:bg-white text-white dark:text-black shadow-lg animate-pulse';
     }
-    if (index === currentIndex && !isComplete) {
+    if (index === midIndex && !isComplete) {
       return 'border-2 border-black dark:border-white bg-black dark:bg-white text-white dark:text-black shadow-md scale-105';
     }
-    return 'border border-gray-300 dark:border-gray-500 bg-white dark:bg-[#0f1117] text-black dark:text-gray-50 shadow-sm';
+    if (isBinarySearch && inRange(index)) {
+      return 'border border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-black dark:text-gray-50 shadow-sm';
+    }
+    return 'border border-gray-300 dark:border-gray-500 bg-white dark:bg-[#0f1117] text-black dark:text-gray-50 shadow-sm opacity-70';
   };
 
   return (
-    <Card>
-      <CardHeader className="py-2 px-4">
-        <CardTitle className="text-base">Array Visualization</CardTitle>
+    <Card className="output-container">
+      <CardHeader className="output-header py-2 px-4">
+        <CardTitle className="text-base">Output</CardTitle>
         {targetValue !== null && (
           <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">
             Searching for: <span className="font-bold text-black dark:text-white">{targetValue}</span>
           </p>
         )}
       </CardHeader>
-      <CardContent className="px-4">
+      <CardContent className="output-content px-4">
         <div className="flex flex-wrap gap-2 justify-center items-center min-h-[70px]">
           {data.map((value, index) => (
             <MagicCard
@@ -71,7 +78,7 @@ export default function DataVisualization({ state, lastRunDurationMs, speed = 'n
               gradientColor="rgba(0,0,0,0.08)"
             >
               <div
-                ref={found && index === currentIndex ? foundCellRef : undefined}
+                ref={found && index === midIndex ? foundCellRef : undefined}
                 className={`
                   w-12 h-12 flex items-center justify-center text-base font-semibold rounded-lg transition-all ${transitionClass}
                   ${getBoxStyle(index)}
@@ -83,13 +90,19 @@ export default function DataVisualization({ state, lastRunDurationMs, speed = 'n
           ))}
         </div>
         <div className="mt-3 text-center text-xs">
-          {!isComplete && currentIndex >= 0 && (
+          {isBinarySearch && left !== undefined && right !== undefined && !isComplete && (
+            <p className="text-gray-700 dark:text-gray-200">
+              left = {left}, right = {right}{mid !== undefined ? `, mid = ${mid}` : ''}
+              {mid !== undefined && data[mid] !== undefined && ` → arr[mid] = ${data[mid]}`}
+            </p>
+          )}
+          {!isBinarySearch && !isComplete && currentIndex >= 0 && (
             <p className="text-gray-700 dark:text-gray-200">Checking index {currentIndex}: arr[{currentIndex}] = {data[currentIndex]}</p>
           )}
           {isComplete && found && (
             <div className="flex flex-wrap items-center justify-center gap-3">
               <div className="bg-green-100 dark:bg-green-950/60 text-green-800 dark:text-green-100 px-3 py-2 rounded-lg inline-block border border-green-200 dark:border-green-700">
-                <p className="font-bold">✓ Element {targetValue} found at index {currentIndex}!</p>
+                <p className="font-bold">✓ Element {targetValue} found at index {midIndex}!</p>
               </div>
               {lastRunDurationMs != null && (
                 <div className="text-gray-600 dark:text-gray-300 text-xs px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-[#0f1117] inline-block">
