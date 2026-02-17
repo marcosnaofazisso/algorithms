@@ -10,12 +10,10 @@ import { Select } from './ui/select';
 import DataVisualization from './DataVisualization';
 import FlowDiagram, { FLOW_DIAGRAM_HEIGHT_PX } from './FlowDiagram';
 import CodeSnippet from './CodeSnippet';
-import TargetCombobox from './TargetCombobox';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './ui/resizable';
 import { Terminal, TerminalLine } from './ui/terminal';
-import { linearSearchGenerator, AnimationStep } from '@/lib/linearSearch';
-
-export type Speed = 'slow' | 'normal' | 'fast';
+import { insertionSortGenerator, InsertionSortStep } from '@/lib/insertionSort';
+import type { Speed } from './LinearSearchViz';
 
 const SPEED_DELAY_MS: Record<Speed, number> = {
   slow: 1600,
@@ -23,7 +21,7 @@ const SPEED_DELAY_MS: Record<Speed, number> = {
   fast: 200,
 };
 
-interface LinearSearchVizProps {
+interface InsertionSortVizProps {
   algorithm: Algorithm;
 }
 
@@ -78,7 +76,6 @@ function AlgorithmReadMore({ whatFor, bestUseCase, performance }: AlgorithmReadM
   );
 }
 
-// Utility function to generate random array
 const generateRandomArray = (size: number, min: number = 1, max: number = 20): number[] => {
   const arr: number[] = [];
   for (let i = 0; i < size; i++) {
@@ -90,26 +87,23 @@ const generateRandomArray = (size: number, min: number = 1, max: number = 20): n
 const DEFAULT_ARRAY_SIZE = 7;
 const MAX_ARRAY_SIZE = 20;
 
-export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
+export default function InsertionSortViz({ algorithm }: InsertionSortVizProps) {
   const [data, setData] = useState<number[]>(() => generateRandomArray(DEFAULT_ARRAY_SIZE));
   const [arraySize, setArraySize] = useState<number>(DEFAULT_ARRAY_SIZE);
   const [arraySizeInput, setArraySizeInput] = useState<string>(String(DEFAULT_ARRAY_SIZE));
   const [diagramLocked, setDiagramLocked] = useState(true);
-  const [targetValue, setTargetValue] = useState<number | null>(null);
-  const [targetInput, setTargetInput] = useState<string>('');
-  const [currentStep, setCurrentStep] = useState<AnimationStep | null>(null);
+  const [currentStep, setCurrentStep] = useState<InsertionSortStep | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
   const [speed, setSpeed] = useState<Speed>('normal');
   const [lastRunDurationMs, setLastRunDurationMs] = useState<number | null>(null);
-  const generatorRef = useRef<AsyncGenerator<AnimationStep> | null>(null);
+  const generatorRef = useRef<AsyncGenerator<InsertionSortStep> | null>(null);
   const stoppedRef = useRef(false);
   const isPausedRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
   const runStartTimeRef = useRef<number | null>(null);
 
-  // Scroll logs to the last line when a new entry is added (use the Terminal's scroll container)
   const logScrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (logEntries.length > 0 && logScrollRef.current) {
@@ -117,7 +111,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     }
   }, [logEntries]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -132,8 +125,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     setArraySizeInput(String(clamped));
     setData(generateRandomArray(clamped));
     setCurrentStep(null);
-    setTargetValue(null);
-    setTargetInput('');
     setLogEntries([]);
   };
 
@@ -159,8 +150,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     if (isRunning) return;
     setData(generateRandomArray(arraySize));
     setCurrentStep(null);
-    setTargetValue(null);
-    setTargetInput('');
     setLogEntries([]);
     toast.success('Array randomized!', {
       style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
@@ -169,7 +158,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
 
   const handleStart = () => {
     if (isRunning && !isPaused) {
-      // Pause
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -180,31 +168,19 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       return;
     }
     if (isRunning && isPaused) {
-      // Resume
       isPausedRef.current = false;
       setIsPaused(false);
       runNextStep();
       return;
     }
 
-    const target = parseInt(targetInput, 10);
-    if (isNaN(target) || targetInput.trim() === '') {
-      toast.error('Select or type a valid target number.');
-      return;
-    }
-    if (!data.includes(target)) {
-      toast.error('This number is not in the array. Please select a value from the list.');
-      return;
-    }
-
-    setTargetValue(target);
     setIsRunning(true);
     setIsPaused(false);
     isPausedRef.current = false;
     setLastRunDurationMs(null);
     stoppedRef.current = false;
     runStartTimeRef.current = Date.now();
-    generatorRef.current = linearSearchGenerator(data, target);
+    generatorRef.current = insertionSortGenerator([...data]);
     runNextStep();
   };
 
@@ -227,16 +203,15 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
     if (!generatorRef.current || stoppedRef.current) return;
 
     const { value, done } = await generatorRef.current.next();
-    
+
     if (done || !value || stoppedRef.current) {
       setIsRunning(false);
       return;
     }
 
     setCurrentStep(value);
-    const msg = value.message;
-    if (msg) {
-      setLogEntries((prev) => [...prev, msg]);
+    if (value.message) {
+      setLogEntries((prev) => [...prev, value.message]);
     }
 
     if (!value.isComplete && !stoppedRef.current && !isPausedRef.current) {
@@ -250,13 +225,12 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       }
       setIsRunning(false);
     }
-    // when isPausedRef.current: do nothing, don't schedule next, don't set isRunning false
   };
 
   const visualizationState = currentStep || {
     data,
     currentIndex: -1,
-    targetValue,
+    targetValue: null,
     found: false,
     isRunning: false,
     isComplete: false,
@@ -266,7 +240,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
 
   return (
     <div className="space-y-4">
-      {/* Algorithm Info - compact */}
       <Card className="algorithm-info-container">
         <CardHeader className="algorithm-info-header py-2 px-4">
           <CardTitle className="text-xl">{algorithm.name}</CardTitle>
@@ -301,9 +274,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
         </CardContent>
       </Card>
 
-      {/* Controls (narrow) | Resizable: Diagram + Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-[185px_1fr] gap-4 min-h-0">
-        {/* Left: Controls only */}
         <div className="controls-container flex flex-col">
           <Card className="w-full">
             <CardHeader className="controls-header py-2 px-4">
@@ -377,16 +348,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                   </Button>
                 </div>
               </div>
-              <div>
-                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Target</p>
-                <TargetCombobox
-                  options={data}
-                  value={targetInput}
-                  onChange={setTargetInput}
-                  disabled={isRunning}
-                  placeholder="Select or type"
-                />
-              </div>
               <div className="flex gap-1.5 pt-1 w-full">
                 <Button
                   onClick={handleStop}
@@ -394,13 +355,13 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
                   variant="outline"
                   size="sm"
                   className="flex-1 h-8 bg-[#fca5a5] border-[#fca5a5] hover:bg-[#f87171] hover:border-[#f87171] text-red-800 dark:bg-red-900/60 dark:border-red-700 dark:text-[#fecaca] dark:hover:bg-red-800/50 dark:hover:border-red-600 cursor-pointer"
-                  title="Stop (restart from beginning)"
+                  title="Stop"
                 >
                   <Square className="size-4" />
                 </Button>
                 <Button
                   onClick={handleStart}
-                  disabled={!isRunning && !targetInput.trim()}
+                  disabled={false}
                   size="sm"
                   className="flex-1 h-8 bg-[#86efac] border-[#86efac] hover:bg-[#4ade80] hover:border-[#4ade80] text-green-800 dark:bg-green-800/50 dark:border-green-600 dark:text-[#86efac] dark:hover:bg-green-700/50 dark:hover:border-green-500 cursor-pointer"
                   title={isRunning ? (isPaused ? 'Resume' : 'Pause') : 'Start'}
@@ -412,7 +373,6 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
           </Card>
         </div>
 
-        {/* Right: Diagram + Logs (resizable) */}
         <ResizablePanelGroup orientation="horizontal" className="rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden shrink-0" style={{ height: FLOW_DIAGRAM_HEIGHT_PX, minHeight: FLOW_DIAGRAM_HEIGHT_PX, maxHeight: FLOW_DIAGRAM_HEIGHT_PX }}>
           <ResizablePanel defaultSize={70} minSize={40} className="diagram-container flex flex-col min-h-0">
             <Card className="w-full h-full flex flex-col min-h-0 rounded-none border-0 border-r border-gray-200 dark:border-gray-600">
@@ -422,6 +382,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
               <CardContent className="diagram-content p-0 !pb-0 flex-1 min-h-0">
                 <FlowDiagram
                   currentStep={flowStep}
+                  variant="insertion-sort"
                   locked={diagramLocked}
                   onLockToggle={() => setDiagramLocked((l) => !l)}
                 />
@@ -448,7 +409,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
               <CardContent className="logs-content flex flex-col flex-1 min-h-0 overflow-y-auto p-0">
                 <Terminal scrollRef={logScrollRef} className="min-h-0 flex-1 overflow-hidden h-full" sequence={false}>
                   {logEntries.length === 0 ? (
-                    <TerminalLine className="text-gray-500 dark:text-gray-400">Steps appear when you run the search.</TerminalLine>
+                    <TerminalLine className="text-gray-500 dark:text-gray-400">Steps appear when you run the sort.</TerminalLine>
                   ) : (
                     logEntries.map((entry, idx) => (
                       <TerminalLine key={idx}>
@@ -463,10 +424,8 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
         </ResizablePanelGroup>
       </div>
 
-      {/* Array Visualization - below Diagram */}
       <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
 
-      {/* Code */}
       <CodeSnippet code={algorithm.pythonCode} />
     </div>
   );

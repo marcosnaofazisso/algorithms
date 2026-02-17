@@ -133,15 +133,9 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
     setLogEntries([]);
   };
 
-  const handleApplyArraySize = () => {
-    if (isRunning) return;
-    const n = parseInt(arraySizeInput, 10);
-    if (isNaN(n) || n < 1) {
-      setArraySizeInput(String(DEFAULT_ARRAY_SIZE));
-      setArraySize(DEFAULT_ARRAY_SIZE);
-      applyArraySize(DEFAULT_ARRAY_SIZE);
-      return;
-    }
+  const applySizeFromInput = (n: number) => {
+    const clamped = Math.min(MAX_ARRAY_SIZE, Math.max(1, n));
+    const prevSize = arraySize;
     if (n > MAX_ARRAY_SIZE) {
       setArraySizeInput(String(MAX_ARRAY_SIZE));
       toast.warning(`Maximum array size is ${MAX_ARRAY_SIZE}.`, {
@@ -149,8 +143,22 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
       });
       return;
     }
-    applyArraySize(n);
-    toast.success('Array size changed (sorted array regenerated)', {
+    applyArraySize(clamped);
+    if (clamped !== prevSize) {
+      toast.success(clamped > prevSize ? 'Array size has increased!' : 'Array size has decreased!', {
+        style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+      });
+    }
+  };
+
+  const handleRandom = () => {
+    if (isRunning) return;
+    setData(generateSortedRandomArray(arraySize));
+    setCurrentStep(null);
+    setTargetValue(null);
+    setTargetInput('');
+    setLogEntries([]);
+    toast.success('Array randomized!', {
       style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
     });
   };
@@ -239,28 +247,6 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
     }
   };
 
-  const handleReset = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    generatorRef.current = null;
-    stoppedRef.current = true;
-    isPausedRef.current = false;
-    setIsPaused(false);
-    setIsRunning(false);
-    setCurrentStep(null);
-    setTargetValue(null);
-    setTargetInput('');
-    setLogEntries([]);
-    setLastRunDurationMs(null);
-    const size = Math.min(MAX_ARRAY_SIZE, Math.max(1, arraySize));
-    setArraySizeInput(String(size));
-    setData(generateSortedRandomArray(size));
-    toast.success('Array and state reset', {
-      style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
-    });
-  };
-
   const visualizationState = currentStep || {
     data,
     currentIndex: -1,
@@ -334,33 +320,38 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                   <Input
                     type="number"
                     min={1}
-                    max={MAX_ARRAY_SIZE}
                     inputMode="numeric"
                     autoComplete="off"
                     value={arraySizeInput}
+                    onKeyDown={(e) => {
+                      if (isRunning) return;
+                      const n = parseInt(arraySizeInput, 10);
+                      if (e.key === 'ArrowUp' && !isNaN(n) && n >= MAX_ARRAY_SIZE) {
+                        e.preventDefault();
+                        toast.warning(`Maximum array size is ${MAX_ARRAY_SIZE}.`, {
+                          style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+                        });
+                      }
+                    }}
                     onChange={(e) => {
+                      if (isRunning) return;
                       const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
                       setArraySizeInput(raw === '' ? '' : raw);
                       const n = parseInt(raw, 10);
                       if (raw !== '' && !isNaN(n)) {
-                        setArraySize(Math.min(MAX_ARRAY_SIZE, Math.max(1, n)));
+                        applySizeFromInput(n);
                       }
                     }}
                     onBlur={() => {
+                      if (isRunning) return;
                       const n = parseInt(arraySizeInput, 10);
                       if (arraySizeInput === '' || isNaN(n)) {
                         setArraySizeInput(String(DEFAULT_ARRAY_SIZE));
-                        setArraySize(DEFAULT_ARRAY_SIZE);
+                        applyArraySize(DEFAULT_ARRAY_SIZE);
                         return;
                       }
-                      if (n < 1) {
-                        setArraySizeInput('1');
-                        setArraySize(1);
-                        return;
-                      }
-                      if (n > MAX_ARRAY_SIZE) return;
-                      setArraySizeInput(String(n));
-                      setArraySize(n);
+                      applySizeFromInput(n);
+                      setArraySizeInput(String(Math.min(MAX_ARRAY_SIZE, Math.max(1, n))));
                     }}
                     disabled={isRunning}
                     className="h-8 text-xs flex-1 min-w-0 hover:cursor-pointer"
@@ -369,12 +360,11 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 w-8 shrink-0 p-0 hover:cursor-pointer"
-                    onClick={handleApplyArraySize}
+                    onClick={handleRandom}
                     disabled={isRunning}
-                    title="Apply array size"
+                    className="h-8 shrink-0 hover:cursor-pointer"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Random
                   </Button>
                 </div>
               </div>
@@ -388,16 +378,13 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                   placeholder="Select or type"
                 />
               </div>
-              <div className="flex gap-1.5 pt-1 ">
-                <Button onClick={handleReset} variant="outline" size="sm" className="flex-1 hover:cursor-pointer">
-                  Reset
-                </Button>
+              <div className="flex gap-1.5 pt-1 w-full">
                 <Button
                   onClick={handleStop}
                   disabled={!isRunning}
                   variant="outline"
                   size="sm"
-                  className="shrink-0 bg-[#fca5a5] border-[#fca5a5] hover:bg-[#f87171] hover:border-[#f87171] text-red-800 dark:bg-red-900/60 dark:border-red-700 dark:text-[#fecaca] dark:hover:bg-red-800/50 dark:hover:border-red-600"
+                  className="flex-1 h-8 bg-[#fca5a5] border-[#fca5a5] hover:bg-[#f87171] hover:border-[#f87171] text-red-800 dark:bg-red-900/60 dark:border-red-700 dark:text-[#fecaca] dark:hover:bg-red-800/50 dark:hover:border-red-600 cursor-pointer"
                   title="Stop (restart from beginning)"
                 >
                   <Square className="size-4" />
@@ -406,7 +393,7 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                   onClick={handleStart}
                   disabled={!isRunning && !targetInput.trim()}
                   size="sm"
-                  className="h-8 w-8 p-0 shrink-0 bg-[#86efac] border-[#86efac] hover:bg-[#4ade80] hover:border-[#4ade80] text-green-800 dark:bg-green-800/50 dark:border-green-600 dark:text-[#86efac] dark:hover:bg-green-700/50 dark:hover:border-green-500 cursor-pointer"
+                  className="flex-1 h-8 bg-[#86efac] border-[#86efac] hover:bg-[#4ade80] hover:border-[#4ade80] text-green-800 dark:bg-green-800/50 dark:border-green-600 dark:text-[#86efac] dark:hover:bg-green-700/50 dark:hover:border-green-500 cursor-pointer"
                   title={isRunning ? (isPaused ? 'Resume' : 'Pause') : 'Start'}
                 >
                   {isRunning && !isPaused ? <Pause className="size-4" /> : <Play className="size-4" />}

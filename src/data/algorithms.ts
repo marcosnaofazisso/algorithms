@@ -91,6 +91,42 @@ if result != -1:
 else:
     print("Element not found")`,
   },
+  {
+    id: 'insertion-sort',
+    name: 'Insertion Sort',
+    category: 'sorting',
+    description:
+      'A simple sorting algorithm that builds the final sorted array one element at a time. It iterates through the array, and for each element, inserts it into its correct position within the already-sorted prefix.',
+    whatFor:
+      'Insertion sort is used to sort a list in place. It is efficient for small or nearly sorted data and is the method of choice when you need a stable, in-place sort with minimal code.',
+    bestUseCase:
+      'Best for small arrays or when the input is already mostly sorted. Often used as the base case in divide-and-conquer sorts (e.g. in hybrid quick sort) and for online sorting when elements arrive one at a time.',
+    performance:
+      'Best case O(n) when the array is already sorted. Average and worst case O(n²) due to comparisons and shifts. Space is O(1). For large random data, prefer merge sort or quick sort; for small n, insertion sort can be faster in practice due to low overhead.',
+    bestCase: 'O(n)',
+    averageCase: 'O(n²)',
+    worstCase: 'O(n²)',
+    spaceComplexity: 'O(1)',
+    pythonCode: `def insertion_sort(arr):
+    """
+    Sort array in place using insertion sort.
+
+    Args:
+        arr: List of comparable elements (modified in place)
+    """
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+
+# Example usage
+arr = [4, 2, 7, 1, 9, 3, 6, 5]
+insertion_sort(arr)
+print("Sorted array:", arr)`,
+  },
 ];
 
 export const algorithmsByCategory = {

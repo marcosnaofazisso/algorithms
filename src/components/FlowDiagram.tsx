@@ -21,7 +21,7 @@ import { FlowStep } from '@/types/algorithms';
 export const FLOW_DIAGRAM_HEIGHT_PX = 360;
 
 type DiagramLayout = 'vertical' | 'horizontal';
-type DiagramVariant = 'linear-search' | 'binary-search';
+type DiagramVariant = 'linear-search' | 'binary-search' | 'insertion-sort';
 
 const VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
   start: { x: 250, y: 0 },
@@ -70,9 +70,40 @@ const BINARY_HORIZONTAL_POSITIONS: Record<string, { x: number; y: number }> = {
   'not-found': { x: 400, y: 60 },
 };
 
+// Insertion sort: vertical
+const INS_VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
+  start: { x: 250, y: 0 },
+  'for-i': { x: 250, y: 60 },
+  key: { x: 250, y: 120 },
+  'while-j': { x: 250, y: 200 },
+  'compare-sort': { x: 250, y: 280 },
+  shift: { x: 80, y: 360 },
+  'j-decrement': { x: 80, y: 440 },
+  insert: { x: 420, y: 360 },
+  'next-i': { x: 250, y: 480 },
+  done: { x: 450, y: 200 },
+};
+
+// Insertion sort: horizontal
+const INS_HORIZONTAL_POSITIONS: Record<string, { x: number; y: number }> = {
+  start: { x: 0, y: 200 },
+  'for-i': { x: 180, y: 200 },
+  key: { x: 360, y: 200 },
+  'while-j': { x: 540, y: 200 },
+  'compare-sort': { x: 720, y: 280 },
+  shift: { x: 720, y: 400 },
+  'j-decrement': { x: 600, y: 400 },
+  insert: { x: 900, y: 120 },
+  'next-i': { x: 360, y: 400 },
+  done: { x: 900, y: 280 },
+};
+
 function getPositions(layout: DiagramLayout, variant: DiagramVariant): Record<string, { x: number; y: number }> {
   if (variant === 'binary-search') {
     return layout === 'horizontal' ? BINARY_HORIZONTAL_POSITIONS : BINARY_VERTICAL_POSITIONS;
+  }
+  if (variant === 'insertion-sort') {
+    return layout === 'horizontal' ? INS_HORIZONTAL_POSITIONS : INS_VERTICAL_POSITIONS;
   }
   return layout === 'horizontal' ? HORIZONTAL_POSITIONS : VERTICAL_POSITIONS;
 }
@@ -146,6 +177,20 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
         { id: 'not-found', type: 'default', position: positions['not-found'], data: { label: 'Return -1' }, style: getNodeStyle('not-found', currentStep === 'not-found') },
       ];
     }
+    if (variant === 'insertion-sort') {
+      return [
+        { id: 'start', type: 'default', position: positions.start, data: { label: 'Start' }, style: getNodeStyle('start', currentStep === 'start') },
+        { id: 'for-i', type: 'default', position: positions['for-i'], data: { label: 'for i = 1 to n-1' }, style: getDecisionNodeStyle('for-i', currentStep === 'for-i') },
+        { id: 'key', type: 'default', position: positions.key, data: { label: 'key = arr[i]' }, style: getNodeStyle('key', currentStep === 'key') },
+        { id: 'while-j', type: 'default', position: positions['while-j'], data: { label: 'j >= 0 and arr[j] > key?' }, style: getDecisionNodeStyle('while-j', currentStep === 'while-j') },
+        { id: 'compare-sort', type: 'default', position: positions['compare-sort'], data: { label: 'arr[j] > key?' }, style: getDecisionNodeStyle('compare-sort', currentStep === 'compare-sort') },
+        { id: 'shift', type: 'default', position: positions.shift, data: { label: 'arr[j+1] = arr[j]' }, style: getNodeStyle('shift', currentStep === 'shift') },
+        { id: 'j-decrement', type: 'default', position: positions['j-decrement'], data: { label: 'j--' }, style: getNodeStyle('j-decrement', currentStep === 'j-decrement') },
+        { id: 'insert', type: 'default', position: positions.insert, data: { label: 'arr[j+1] = key' }, style: getNodeStyle('insert', currentStep === 'insert') },
+        { id: 'next-i', type: 'default', position: positions['next-i'], data: { label: 'next i' }, style: getNodeStyle('next-i', currentStep === 'next-i') },
+        { id: 'done', type: 'default', position: positions.done, data: { label: 'Done' }, style: getNodeStyle('done', currentStep === 'done') },
+      ];
+    }
     return [
       { id: 'start', type: 'default', position: positions.start, data: { label: 'Start' }, style: getNodeStyle('start', currentStep === 'start') },
       { id: 'init', type: 'default', position: positions.init, data: { label: 'i = 0' }, style: getNodeStyle('init', currentStep === 'init') },
@@ -170,6 +215,21 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
         { id: 'e-compare-goright', source: 'compare', target: 'go-right', label: 'No, <', style: { stroke: currentStep === 'go-right' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'go-right' ? 2.5 : 1.5 }, animated: currentStep === 'go-right', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
         { id: 'e-goleft-check', source: 'go-left', target: 'check', style: { stroke: edgeInactive, strokeWidth: 1.5 }, type: 'smoothstep', animated: false },
         { id: 'e-goright-check', source: 'go-right', target: 'check', style: { stroke: edgeInactive, strokeWidth: 1.5 }, type: 'smoothstep', animated: false },
+      ];
+    }
+    if (variant === 'insertion-sort') {
+      return [
+        { id: 'e-start-fori', source: 'start', target: 'for-i', style: { stroke: currentStep === 'start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'start' ? 2.5 : 1.5 }, animated: currentStep === 'start' },
+        { id: 'e-fori-key', source: 'for-i', target: 'key', label: 'Yes', style: { stroke: currentStep === 'for-i' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'for-i' ? 2.5 : 1.5 }, animated: currentStep === 'for-i', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-fori-done', source: 'for-i', target: 'done', label: 'No', style: { stroke: currentStep === 'done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'done' ? 2.5 : 1.5 }, animated: currentStep === 'done', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-key-whilej', source: 'key', target: 'while-j', style: { stroke: currentStep === 'key' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'key' ? 2.5 : 1.5 }, animated: currentStep === 'key' },
+        { id: 'e-whilej-compare', source: 'while-j', target: 'compare-sort', label: 'Yes', style: { stroke: currentStep === 'while-j' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'while-j' ? 2.5 : 1.5 }, animated: currentStep === 'while-j', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-whilej-insert', source: 'while-j', target: 'insert', label: 'No', style: { stroke: currentStep === 'insert' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'insert' ? 2.5 : 1.5 }, animated: currentStep === 'insert', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-compare-shift', source: 'compare-sort', target: 'shift', style: { stroke: currentStep === 'compare-sort' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'compare-sort' ? 2.5 : 1.5 }, animated: currentStep === 'compare-sort' },
+        { id: 'e-shift-jdec', source: 'shift', target: 'j-decrement', style: { stroke: currentStep === 'shift' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'shift' ? 2.5 : 1.5 }, animated: currentStep === 'shift' },
+        { id: 'e-jdec-whilej', source: 'j-decrement', target: 'while-j', style: { stroke: currentStep === 'j-decrement' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'j-decrement' ? 2.5 : 1.5 }, animated: currentStep === 'j-decrement', type: 'smoothstep' },
+        { id: 'e-insert-nexti', source: 'insert', target: 'next-i', style: { stroke: currentStep === 'insert' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'insert' ? 2.5 : 1.5 }, animated: currentStep === 'insert' },
+        { id: 'e-nexti-fori', source: 'next-i', target: 'for-i', style: { stroke: currentStep === 'next-i' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'next-i' ? 2.5 : 1.5 }, animated: currentStep === 'next-i', type: 'smoothstep' },
       ];
     }
     return [

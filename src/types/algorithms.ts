@@ -29,6 +29,12 @@ export interface VisualizationState {
   right?: number;
   /** Binary search: middle index (can also use currentIndex as mid) */
   mid?: number;
+  /** Sorting: index of the key element being inserted (e.g. i) */
+  keyIndex?: number;
+  /** Sorting: index we are comparing with (e.g. j) */
+  compareIndex?: number;
+  /** Sorting: end index of the sorted region (0..sortedEndIndex-1) */
+  sortedEndIndex?: number;
 }
 
 export type FlowStep =
@@ -42,4 +48,14 @@ export type FlowStep =
   | 'check'
   | 'mid'
   | 'go-left'
-  | 'go-right';
+  | 'go-right'
+  // Insertion sort
+  | 'for-i'
+  | 'key'
+  | 'while-j'
+  | 'compare-sort'
+  | 'shift'
+  | 'j-decrement'
+  | 'insert'
+  | 'next-i'
+  | 'done';
