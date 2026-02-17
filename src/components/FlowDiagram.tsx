@@ -16,66 +16,13 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FlowStep } from '@/types/algorithms';
+import { FLOW_DEFINITIONS } from '@/flowDiagram/flowDefinitions';
+import { getPositions, type DiagramLayout, type DiagramVariant } from '@/flowDiagram/positions';
 
 /** Height of the Diagram+Logs panel in px. The flow fills the space below the Diagram card header. */
 export const FLOW_DIAGRAM_HEIGHT_PX = 360;
 
-type DiagramLayout = 'vertical' | 'horizontal';
-type DiagramVariant = 'linear-search' | 'binary-search';
-
-const VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
-  start: { x: 250, y: 0 },
-  init: { x: 250, y: 100 },
-  'check-length': { x: 220, y: 200 },
-  compare: { x: 200, y: 320 },
-  found: { x: 450, y: 320 },
-  increment: { x: 50, y: 440 },
-  'not-found': { x: 450, y: 200 },
-};
-
-// Horizontal layout: generous spacing (260px x, 140px y) so edges are clearly visible
-const HORIZONTAL_POSITIONS: Record<string, { x: number; y: number }> = {
-  start: { x: 0, y: 200 },
-  init: { x: 260, y: 200 },
-  'check-length': { x: 520, y: 200 },
-  compare: { x: 780, y: 340 },
-  found: { x: 1040, y: 200 },
-  increment: { x: 780, y: 480 },
-  'not-found': { x: 780, y: 60 },
-};
-
-// Binary search: vertical
-const BINARY_VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
-  start: { x: 250, y: 0 },
-  init: { x: 250, y: 80 },
-  check: { x: 250, y: 160 },
-  mid: { x: 250, y: 240 },
-  compare: { x: 250, y: 320 },
-  found: { x: 450, y: 320 },
-  'go-left': { x: 80, y: 420 },
-  'go-right': { x: 420, y: 420 },
-  'not-found': { x: 450, y: 160 },
-};
-
-// Binary search: horizontal
-const BINARY_HORIZONTAL_POSITIONS: Record<string, { x: number; y: number }> = {
-  start: { x: 0, y: 200 },
-  init: { x: 200, y: 200 },
-  check: { x: 400, y: 200 },
-  mid: { x: 600, y: 200 },
-  compare: { x: 800, y: 280 },
-  found: { x: 1000, y: 120 },
-  'go-left': { x: 680, y: 400 },
-  'go-right': { x: 920, y: 400 },
-  'not-found': { x: 400, y: 60 },
-};
-
-function getPositions(layout: DiagramLayout, variant: DiagramVariant): Record<string, { x: number; y: number }> {
-  if (variant === 'binary-search') {
-    return layout === 'horizontal' ? BINARY_HORIZONTAL_POSITIONS : BINARY_VERTICAL_POSITIONS;
-  }
-  return layout === 'horizontal' ? HORIZONTAL_POSITIONS : VERTICAL_POSITIONS;
-}
+export type { DiagramVariant };
 
 interface FlowDiagramProps {
   currentStep: FlowStep;
@@ -85,12 +32,15 @@ interface FlowDiagramProps {
   onLockToggle?: () => void;
 }
 
+const LABEL_STYLE = { fontFamily: '"Noto Serif", serif', fontSize: '12px' };
+
 function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = true, onLockToggle }: FlowDiagramProps) {
   const [panEnabled, setPanEnabled] = useState(false);
   const [layout, setLayout] = useState<DiagramLayout>('vertical');
   const [theme] = useAtom(themeAtom);
   const isDark = theme === 'dark';
   const positions = getPositions(layout, variant);
+  const definition = FLOW_DEFINITIONS[variant];
 
   const activeBg = isDark ? '#E5E7EB' : '#000000';
   const activeFg = isDark ? '#000000' : '#FFFFFF';
@@ -133,55 +83,43 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
   });
 
   const initialNodes: Node[] = useMemo(() => {
-    if (variant === 'binary-search') {
-      return [
-        { id: 'start', type: 'default', position: positions.start, data: { label: 'Start' }, style: getNodeStyle('start', currentStep === 'start') },
-        { id: 'init', type: 'default', position: positions.init, data: { label: 'left=0, right=n-1' }, style: getNodeStyle('init', currentStep === 'init') },
-        { id: 'check', type: 'default', position: positions.check, data: { label: 'left <= right?' }, style: getDecisionNodeStyle('check', currentStep === 'check') },
-        { id: 'mid', type: 'default', position: positions.mid, data: { label: 'mid = (L+R)/2' }, style: getNodeStyle('mid', currentStep === 'mid') },
-        { id: 'compare', type: 'default', position: positions.compare, data: { label: 'arr[mid] == target?' }, style: getDecisionNodeStyle('compare', currentStep === 'compare') },
-        { id: 'found', type: 'default', position: positions.found, data: { label: 'Return mid' }, style: getNodeStyle('found', currentStep === 'found') },
-        { id: 'go-left', type: 'default', position: positions['go-left'], data: { label: 'right = mid-1' }, style: getNodeStyle('go-left', currentStep === 'go-left') },
-        { id: 'go-right', type: 'default', position: positions['go-right'], data: { label: 'left = mid+1' }, style: getNodeStyle('go-right', currentStep === 'go-right') },
-        { id: 'not-found', type: 'default', position: positions['not-found'], data: { label: 'Return -1' }, style: getNodeStyle('not-found', currentStep === 'not-found') },
-      ];
-    }
-    return [
-      { id: 'start', type: 'default', position: positions.start, data: { label: 'Start' }, style: getNodeStyle('start', currentStep === 'start') },
-      { id: 'init', type: 'default', position: positions.init, data: { label: 'i = 0' }, style: getNodeStyle('init', currentStep === 'init') },
-      { id: 'check-length', type: 'default', position: positions['check-length'], data: { label: 'i < length?' }, style: getDecisionNodeStyle('check-length', currentStep === 'check-length') },
-      { id: 'compare', type: 'default', position: positions.compare, data: { label: 'arr[i] == target?' }, style: getDecisionNodeStyle('compare', currentStep === 'compare') },
-      { id: 'found', type: 'default', position: positions.found, data: { label: 'Return i' }, style: getNodeStyle('found', currentStep === 'found') },
-      { id: 'increment', type: 'default', position: positions.increment, data: { label: 'i++' }, style: getNodeStyle('increment', currentStep === 'increment') },
-      { id: 'not-found', type: 'default', position: positions['not-found'], data: { label: 'Return -1' }, style: getNodeStyle('not-found', currentStep === 'not-found') },
-    ];
-  }, [currentStep, layout, variant, isDark, positions]);
+    return definition.nodes.map((node) => {
+      const pos = positions[node.id] ?? { x: 0, y: 0 };
+      const isActive = currentStep === node.id;
+      const style = node.decision ? getDecisionNodeStyle(node.id as FlowStep, isActive) : getNodeStyle(node.id as FlowStep, isActive);
+      return {
+        id: node.id,
+        type: 'default',
+        position: pos,
+        data: { label: node.label },
+        style,
+      };
+    });
+  }, [currentStep, layout, variant, isDark, positions, definition.nodes]);
 
   const initialEdges: Edge[] = useMemo(() => {
-    if (variant === 'binary-search') {
-      return [
-        { id: 'e-start-init', source: 'start', target: 'init', style: { stroke: currentStep === 'start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'start' ? 2.5 : 1.5 }, animated: currentStep === 'start' },
-        { id: 'e-init-check', source: 'init', target: 'check', style: { stroke: currentStep === 'init' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'init' ? 2.5 : 1.5 }, animated: currentStep === 'init' },
-        { id: 'e-check-mid', source: 'check', target: 'mid', label: 'Yes', style: { stroke: currentStep === 'check' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'check' ? 2.5 : 1.5 }, animated: currentStep === 'check', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-        { id: 'e-check-notfound', source: 'check', target: 'not-found', label: 'No', style: { stroke: currentStep === 'not-found' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'not-found' ? 2.5 : 1.5 }, animated: currentStep === 'not-found', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-        { id: 'e-mid-compare', source: 'mid', target: 'compare', style: { stroke: currentStep === 'mid' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'mid' ? 2.5 : 1.5 }, animated: currentStep === 'mid' },
-        { id: 'e-compare-found', source: 'compare', target: 'found', label: 'Yes', style: { stroke: currentStep === 'compare' || currentStep === 'found' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'compare' || currentStep === 'found' ? 2.5 : 1.5 }, animated: currentStep === 'compare' || currentStep === 'found', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-        { id: 'e-compare-goleft', source: 'compare', target: 'go-left', label: 'No, >', style: { stroke: currentStep === 'go-left' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'go-left' ? 2.5 : 1.5 }, animated: currentStep === 'go-left', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-        { id: 'e-compare-goright', source: 'compare', target: 'go-right', label: 'No, <', style: { stroke: currentStep === 'go-right' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'go-right' ? 2.5 : 1.5 }, animated: currentStep === 'go-right', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-        { id: 'e-goleft-check', source: 'go-left', target: 'check', style: { stroke: edgeInactive, strokeWidth: 1.5 }, type: 'smoothstep', animated: false },
-        { id: 'e-goright-check', source: 'go-right', target: 'check', style: { stroke: edgeInactive, strokeWidth: 1.5 }, type: 'smoothstep', animated: false },
-      ];
-    }
-    return [
-      { id: 'e-start-init', source: 'start', target: 'init', style: { stroke: currentStep === 'start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'start' ? 2.5 : 1.5 }, animated: currentStep === 'start' },
-      { id: 'e-init-check', source: 'init', target: 'check-length', style: { stroke: currentStep === 'init' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'init' ? 2.5 : 1.5 }, animated: currentStep === 'init' },
-      { id: 'e-check-compare', source: 'check-length', target: 'compare', label: 'Yes', style: { stroke: currentStep === 'check-length' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'check-length' ? 2.5 : 1.5 }, animated: currentStep === 'check-length', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-      { id: 'e-check-notfound', source: 'check-length', target: 'not-found', label: 'No', style: { stroke: edgeInactive, strokeWidth: 1.5 }, animated: false, labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-      { id: 'e-compare-found', source: 'compare', target: 'found', label: 'Yes', style: { stroke: currentStep === 'compare' || currentStep === 'found' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'compare' || currentStep === 'found' ? 2.5 : 1.5 }, animated: currentStep === 'compare' || currentStep === 'found', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-      { id: 'e-compare-increment', source: 'compare', target: 'increment', label: 'No', style: { stroke: currentStep === 'increment' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'increment' ? 2.5 : 1.5 }, animated: currentStep === 'increment', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
-      { id: 'e-increment-check', source: 'increment', target: 'check-length', style: { stroke: edgeInactive, strokeWidth: 1.5 }, type: 'smoothstep', animated: false },
-    ];
-  }, [currentStep, variant, isDark, labelBg, edgeActive, edgeInactive]);
+    return definition.edges.map((edge) => {
+      const isActive = edge.activeSteps.includes(currentStep);
+      const stroke = isActive ? edgeActive : edgeInactive;
+      const strokeWidth = isActive ? 2.5 : 1.5;
+      const base: Edge = {
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        style: { stroke, strokeWidth },
+        animated: isActive,
+      };
+      if (edge.label) {
+        base.label = edge.label;
+        base.labelStyle = LABEL_STYLE;
+        base.labelBgStyle = { fill: labelBg };
+      }
+      if (edge.smoothstep) {
+        base.type = 'smoothstep';
+      }
+      return base;
+    });
+  }, [currentStep, variant, isDark, labelBg, edgeActive, edgeInactive, definition.edges]);
 
   const togglePan = () => setPanEnabled((p) => !p);
 

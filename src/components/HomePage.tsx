@@ -1,7 +1,37 @@
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { algorithms } from '@/data/algorithms';
+import { algorithms, algorithmsByCategory } from '@/data/algorithms';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+type CategoryFilter = 'all' | 'search' | 'sorting' | 'trees';
 
 export default function HomePage() {
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredAlgorithms = useMemo(() => {
+    const byCategory =
+      categoryFilter === 'all'
+        ? algorithms
+        : categoryFilter === 'search'
+          ? algorithmsByCategory.search
+          : categoryFilter === 'trees'
+            ? algorithmsByCategory.trees
+            : algorithmsByCategory.sorting;
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return byCategory;
+    return byCategory.filter((algo) =>
+      algo.name.toLowerCase().includes(query)
+    );
+  }, [categoryFilter, searchQuery]);
+
   return (
     <div className="py-8">
       <div className="text-center max-w-2xl mx-auto mb-10">
@@ -13,8 +43,33 @@ export default function HomePage() {
           or pick one below to get started.
         </p>
       </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-6">
+        <Input
+          type="search"
+          placeholder="Search algorithms..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-xs"
+        />
+        <Select
+          value={categoryFilter}
+          onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}
+        >
+          <SelectTrigger className="w-[140px] h-9 text-sm">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="search">Search</SelectItem>
+            <SelectItem value="sorting">Sort</SelectItem>
+            <SelectItem value="trees">Trees</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {algorithms.map((algo) => (
+        {filteredAlgorithms.map((algo) => (
           <Link
             key={algo.id}
             to={`/${algo.id}`}

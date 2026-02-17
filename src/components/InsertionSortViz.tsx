@@ -10,10 +10,9 @@ import { NativeSelect } from './ui/native-select';
 import DataVisualization from './DataVisualization';
 import FlowDiagram, { FLOW_DIAGRAM_HEIGHT_PX } from './FlowDiagram';
 import CodeSnippet from './CodeSnippet';
-import TargetCombobox from './TargetCombobox';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './ui/resizable';
 import { Terminal, TerminalLine } from './ui/terminal';
-import { binarySearchGenerator, BinarySearchAnimationStep } from '@/lib/binarySearch';
+import { insertionSortGenerator, InsertionSortStep } from '@/lib/insertionSort';
 import type { Speed } from './LinearSearchViz';
 
 const SPEED_DELAY_MS: Record<Speed, number> = {
@@ -22,7 +21,7 @@ const SPEED_DELAY_MS: Record<Speed, number> = {
   fast: 200,
 };
 
-interface BinarySearchVizProps {
+interface InsertionSortVizProps {
   algorithm: Algorithm;
 }
 
@@ -77,31 +76,29 @@ function AlgorithmReadMore({ whatFor, bestUseCase, performance }: AlgorithmReadM
   );
 }
 
-function generateSortedRandomArray(size: number, min: number = 1, max: number = 20): number[] {
+const generateRandomArray = (size: number, min: number = 1, max: number = 20): number[] => {
   const arr: number[] = [];
   for (let i = 0; i < size; i++) {
     arr.push(Math.floor(Math.random() * (max - min + 1)) + min);
   }
-  return arr.sort((a, b) => a - b);
-}
+  return arr;
+};
 
 const DEFAULT_ARRAY_SIZE = 7;
 const MAX_ARRAY_SIZE = 20;
 
-export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
-  const [data, setData] = useState<number[]>(() => generateSortedRandomArray(DEFAULT_ARRAY_SIZE));
+export default function InsertionSortViz({ algorithm }: InsertionSortVizProps) {
+  const [data, setData] = useState<number[]>(() => generateRandomArray(DEFAULT_ARRAY_SIZE));
   const [arraySize, setArraySize] = useState<number>(DEFAULT_ARRAY_SIZE);
   const [arraySizeInput, setArraySizeInput] = useState<string>(String(DEFAULT_ARRAY_SIZE));
   const [diagramLocked, setDiagramLocked] = useState(true);
-  const [targetValue, setTargetValue] = useState<number | null>(null);
-  const [targetInput, setTargetInput] = useState<string>('');
-  const [currentStep, setCurrentStep] = useState<BinarySearchAnimationStep | null>(null);
+  const [currentStep, setCurrentStep] = useState<InsertionSortStep | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
   const [speed, setSpeed] = useState<Speed>('normal');
   const [lastRunDurationMs, setLastRunDurationMs] = useState<number | null>(null);
-  const generatorRef = useRef<AsyncGenerator<BinarySearchAnimationStep> | null>(null);
+  const generatorRef = useRef<AsyncGenerator<InsertionSortStep> | null>(null);
   const stoppedRef = useRef(false);
   const isPausedRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
@@ -126,10 +123,8 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
     const clamped = Math.min(MAX_ARRAY_SIZE, Math.max(1, size));
     setArraySize(clamped);
     setArraySizeInput(String(clamped));
-    setData(generateSortedRandomArray(clamped));
+    setData(generateRandomArray(clamped));
     setCurrentStep(null);
-    setTargetValue(null);
-    setTargetInput('');
     setLogEntries([]);
   };
 
@@ -153,10 +148,8 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
 
   const handleRandom = () => {
     if (isRunning) return;
-    setData(generateSortedRandomArray(arraySize));
+    setData(generateRandomArray(arraySize));
     setCurrentStep(null);
-    setTargetValue(null);
-    setTargetInput('');
     setLogEntries([]);
     toast.success('Array randomized!', {
       style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
@@ -181,26 +174,13 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
       return;
     }
 
-    const target = parseInt(targetInput, 10);
-    if (isNaN(target) || targetInput.trim() === '') {
-      toast.error('Select or type a valid target number.');
-      return;
-    }
-    const minVal = Math.min(...data);
-    const maxVal = Math.max(...data);
-    if (target < minVal || target > maxVal) {
-      toast.error(`Target must be within array range [${minVal}, ${maxVal}].`);
-      return;
-    }
-
-    setTargetValue(target);
     setIsRunning(true);
     setIsPaused(false);
     isPausedRef.current = false;
     setLastRunDurationMs(null);
     stoppedRef.current = false;
     runStartTimeRef.current = Date.now();
-    generatorRef.current = binarySearchGenerator(data, target);
+    generatorRef.current = insertionSortGenerator([...data]);
     runNextStep();
   };
 
@@ -250,7 +230,7 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
   const visualizationState = currentStep || {
     data,
     currentIndex: -1,
-    targetValue,
+    targetValue: null,
     found: false,
     isRunning: false,
     isComplete: false,
@@ -368,16 +348,6 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                   </Button>
                 </div>
               </div>
-              <div>
-                <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Target</p>
-                <TargetCombobox
-                  options={data}
-                  value={targetInput}
-                  onChange={setTargetInput}
-                  disabled={isRunning}
-                  placeholder="Select or type"
-                />
-              </div>
               <div className="flex gap-1.5 pt-1 w-full">
                 <Button
                   onClick={handleStop}
@@ -385,13 +355,13 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                   variant="outline"
                   size="sm"
                   className="flex-1 h-8 bg-[#fca5a5] border-[#fca5a5] hover:bg-[#f87171] hover:border-[#f87171] text-red-800 dark:bg-red-900/60 dark:border-red-700 dark:text-[#fecaca] dark:hover:bg-red-800/50 dark:hover:border-red-600 cursor-pointer"
-                  title="Stop (restart from beginning)"
+                  title="Stop"
                 >
                   <Square className="size-4" />
                 </Button>
                 <Button
                   onClick={handleStart}
-                  disabled={!isRunning && !targetInput.trim()}
+                  disabled={false}
                   size="sm"
                   className="flex-1 h-8 bg-[#86efac] border-[#86efac] hover:bg-[#4ade80] hover:border-[#4ade80] text-green-800 dark:bg-green-800/50 dark:border-green-600 dark:text-[#86efac] dark:hover:bg-green-700/50 dark:hover:border-green-500 cursor-pointer"
                   title={isRunning ? (isPaused ? 'Resume' : 'Pause') : 'Start'}
@@ -411,8 +381,8 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
               </CardHeader>
               <CardContent className="diagram-content p-0 !pb-0 flex-1 min-h-0">
                 <FlowDiagram
-                  variant="binary-search"
                   currentStep={flowStep}
+                  variant="insertion-sort"
                   locked={diagramLocked}
                   onLockToggle={() => setDiagramLocked((l) => !l)}
                 />
@@ -439,7 +409,7 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
               <CardContent className="logs-content flex flex-col flex-1 min-h-0 overflow-y-auto p-0">
                 <Terminal scrollRef={logScrollRef} className="min-h-0 flex-1 overflow-hidden h-full" sequence={false}>
                   {logEntries.length === 0 ? (
-                    <TerminalLine className="text-gray-500 dark:text-gray-400">Steps appear when you run the search.</TerminalLine>
+                    <TerminalLine className="text-gray-500 dark:text-gray-400">Steps appear when you run the sort.</TerminalLine>
                   ) : (
                     logEntries.map((entry, idx) => (
                       <TerminalLine key={idx}>
