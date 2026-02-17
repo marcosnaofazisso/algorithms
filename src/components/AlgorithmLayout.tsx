@@ -49,7 +49,6 @@ export default function AlgorithmLayout() {
           </div>
           <div className="flex items-center gap-2">
             <AlgorithmSelector
-              algorithms={algorithms}
               selectedValue={selectedValue}
               onSelect={handleSelect}
             />
