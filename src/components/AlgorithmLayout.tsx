@@ -1,8 +1,7 @@
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { algorithms } from '@/data/algorithms';
+import { getVizComponent } from '@/registry/algorithmVizRegistry';
 import AlgorithmSelector from './AlgorithmSelector';
-import LinearSearchViz from './LinearSearchViz';
-import BinarySearchViz from './BinarySearchViz';
 import HomePage from './HomePage';
 import { ThemeSwitch } from './ThemeSwitch';
 import { Separator } from './ui/separator';
@@ -18,6 +17,8 @@ export default function AlgorithmLayout() {
     ? algorithms.find((algo) => algo.id === algorithmId)
     : null;
 
+  const VizComponent = getVizComponent(algorithmId ?? undefined);
+
   const handleSelect = (value: string) => {
     if (value === 'home') {
       navigate('/');
@@ -31,7 +32,7 @@ export default function AlgorithmLayout() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1 tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold mb-1 tracking-tight text-gray-900 dark:text-white hover:cursor-pointer" onClick={() => navigate('/')}>
               Algorithm
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -40,7 +41,6 @@ export default function AlgorithmLayout() {
           </div>
           <div className="flex items-center gap-2">
             <AlgorithmSelector
-              algorithms={algorithms}
               selectedValue={selectedValue}
               onSelect={handleSelect}
             />
@@ -52,14 +52,9 @@ export default function AlgorithmLayout() {
 
         {isHome ? (
           <HomePage />
-        ) : selectedAlgorithm ? (
+        ) : VizComponent && selectedAlgorithm ? (
           <div>
-            {selectedAlgorithm.id === 'linear-search' && (
-              <LinearSearchViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'binary-search' && (
-              <BinarySearchViz algorithm={selectedAlgorithm} />
-            )}
+            <VizComponent algorithm={selectedAlgorithm} />
           </div>
         ) : (
           <div className="py-8 text-center text-gray-600 dark:text-gray-300">

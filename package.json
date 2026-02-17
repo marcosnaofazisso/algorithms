@@ -21,6 +21,7 @@
   "homepage": "https://github.com/marcosnaofazisso/algorithms#readme",
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-switch": "^1.2.6",
     "@xyflow/react": "^12.10.0",
     "canvas-confetti": "^1.9.4",

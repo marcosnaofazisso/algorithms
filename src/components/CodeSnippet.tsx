@@ -1,25 +1,44 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import type { CodeLanguageId } from '@/types/algorithms';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Select } from './ui/select';
+import { NativeSelect } from './ui/native-select';
 
 interface CodeSnippetProps {
-  code: string;
-  language?: string;
+  codeByLanguage: Record<CodeLanguageId, string>;
+  defaultLanguage?: CodeLanguageId;
 }
 
-const LANGUAGES = [{ id: 'python', label: 'Python' }] as const;
+const LANGUAGES: { id: CodeLanguageId; label: string }[] = [
+  { id: 'python', label: 'Python' },
+  { id: 'java', label: 'Java' },
+  { id: 'csharp', label: 'C#' },
+  { id: 'php', label: 'PHP' },
+  { id: 'node', label: 'Node' },
+  { id: 'go', label: 'Go' },
+  { id: 'rust', label: 'Rust' },
+];
 
-export default function CodeSnippet({ code, language = 'python' }: CodeSnippetProps) {
-  const [selectedLang, setSelectedLang] = useState<string>(language);
+const FALLBACK_MESSAGE = 'Code not available for this language.';
+
+export default function CodeSnippet({ codeByLanguage, defaultLanguage = 'python' }: CodeSnippetProps) {
+  const [selectedLang, setSelectedLang] = useState<CodeLanguageId>(defaultLanguage);
+
+  const code = codeByLanguage[selectedLang] ?? FALLBACK_MESSAGE;
 
   const handleCopy = async () => {
+    const toCopy = codeByLanguage[selectedLang];
+    if (!toCopy) return;
     try {
-      await navigator.clipboard.writeText(code);
-      toast.success('Code copied!');
+      await navigator.clipboard.writeText(toCopy);
+      toast.success('Code copied!', {
+        style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+      });
     } catch {
-      toast.error('Failed to copy');
+      toast.error('Failed to copy', {
+        style: { background: '#fff', color: '#000', border: '1px solid #e5e5e5' },
+      });
     }
   };
 
@@ -28,9 +47,9 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
       <CardHeader className="code-header py-2 px-4 flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-base">Code</CardTitle>
         <div className="flex items-center gap-2">
-          <Select
+          <NativeSelect
             value={selectedLang}
-            onChange={(e) => setSelectedLang(e.target.value)}
+            onChange={(e) => setSelectedLang(e.target.value as CodeLanguageId)}
             className="w-28 h-8 text-xs"
           >
             {LANGUAGES.map((lang) => (
@@ -38,8 +57,8 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
                 {lang.label}
               </option>
             ))}
-          </Select>
-          <Button size="sm" variant="outline" onClick={handleCopy} className="h-8 text-xs cursor-pointer">
+          </NativeSelect>
+          <Button size="sm" variant="outline" onClick={handleCopy} disabled={!codeByLanguage[selectedLang]} className="h-8 text-xs cursor-pointer">
             Copy
           </Button>
         </div>
