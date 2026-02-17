@@ -265,6 +265,188 @@ arr = [4, 2, 7, 1, 9, 3, 6, 5]
 quick_sort(arr)
 print("Sorted array:", arr)`,
   },
+  {
+    id: 'selection-sort',
+    name: 'Selection Sort',
+    category: 'sorting',
+    description:
+      'An in-place comparison sort that divides the array into a sorted and an unsorted region. It repeatedly selects the smallest element from the unsorted region and swaps it with the first unsorted element.',
+    whatFor:
+      'Selection sort is used when memory writes are costly, since it does at most n swaps. It is simple and works well for small or nearly sorted data.',
+    bestUseCase:
+      'Best when swap cost is high (e.g. external storage) or when the list is small. Not stable; for stability use insertion or merge sort.',
+    performance:
+      'Always O(n²) comparisons; best, average, and worst case. Space O(1). At most n swaps. Simple but inefficient for large n.',
+    bestCase: 'O(n²)',
+    averageCase: 'O(n²)',
+    worstCase: 'O(n²)',
+    spaceComplexity: 'O(1)',
+    pythonCode: `def selection_sort(arr):
+    """
+    Sort array in place using selection sort.
+    """
+    n = len(arr)
+    for i in range(n):
+        min_idx = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+
+arr = [4, 2, 7, 1, 9, 3, 6, 5]
+selection_sort(arr)
+print("Sorted:", arr)`,
+  },
+  {
+    id: 'heap-sort',
+    name: 'Heap Sort',
+    category: 'sorting',
+    description:
+      'A comparison-based sort that uses a binary heap. It builds a max-heap from the array, then repeatedly extracts the maximum (swaps with end) and heapifies the remaining part.',
+    whatFor:
+      'Heap sort is used when you need O(n log n) guaranteed and O(1) extra space. It is the basis for priority queues.',
+    bestUseCase:
+      'Best when you need in-place sort with guaranteed O(n log n) and cannot use quick sort (e.g. worst-case matters). Not stable.',
+    performance:
+      'Always O(n log n) time. Space O(1). In-place. Not stable. Slower in practice than quick sort due to cache behavior.',
+    bestCase: 'O(n log n)',
+    averageCase: 'O(n log n)',
+    worstCase: 'O(n log n)',
+    spaceComplexity: 'O(1)',
+    pythonCode: `def heapify(arr, n, i):
+    largest = i
+    l, r = 2 * i + 1, 2 * i + 2
+    if l < n and arr[l] > arr[largest]:
+        largest = l
+    if r < n and arr[r] > arr[largest]:
+        largest = r
+    if largest != i:
+        arr[i], arr[largest] = arr[largest], arr[i]
+        heapify(arr, n, largest)
+
+def heap_sort(arr):
+    n = len(arr)
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(arr, n, i)
+    for i in range(n - 1, 0, -1):
+        arr[0], arr[i] = arr[i], arr[0]
+        heapify(arr, i, 0)
+
+arr = [4, 2, 7, 1, 9, 3, 6, 5]
+heap_sort(arr)
+print("Sorted:", arr)`,
+  },
+  {
+    id: 'counting-sort',
+    name: 'Counting Sort',
+    category: 'sorting',
+    description:
+      'A non-comparison sort that counts the frequency of each value in a small range, then computes prefix sums and places each element in its sorted position. Works only for integers in a known range.',
+    whatFor:
+      'Counting sort is used when the range of values (k) is small compared to the number of elements (n). It runs in O(n + k).',
+    bestUseCase:
+      'Best for integers (or small keys) in a limited range, e.g. sorting by age (0–150) or by digit (0–9). Stable when implemented with prefix sum.',
+    performance:
+      'Time O(n + k) where k is the range. Space O(n + k). Stable. Not comparison-based; breaks the O(n log n) barrier for small k.',
+    bestCase: 'O(n + k)',
+    averageCase: 'O(n + k)',
+    worstCase: 'O(n + k)',
+    spaceComplexity: 'O(n + k)',
+    pythonCode: `def counting_sort(arr, max_val=None):
+    if max_val is None:
+        max_val = max(arr)
+    count = [0] * (max_val + 1)
+    for x in arr:
+        count[x] += 1
+    for i in range(1, len(count)):
+        count[i] += count[i - 1]
+    out = [0] * len(arr)
+    for x in reversed(arr):
+        out[count[x] - 1] = x
+        count[x] -= 1
+    arr[:] = out
+
+arr = [4, 2, 7, 1, 9, 3, 6, 5]
+counting_sort(arr, 9)
+print("Sorted:", arr)`,
+  },
+  {
+    id: 'radix-sort',
+    name: 'Radix Sort',
+    category: 'sorting',
+    description:
+      'A non-comparison sort that sorts integers by processing digits from least significant to most significant (or vice versa). Each digit pass is typically done with counting sort, so it is stable.',
+    whatFor:
+      'Radix sort is used for fixed-length integers or strings. It runs in O(n * d) where d is the number of digits.',
+    bestUseCase:
+      'Best for integers with a fixed number of digits, or strings of same length. Often used for large datasets of integers.',
+    performance:
+      'Time O(n * d) where d is digit count. Space O(n + k) per digit pass. Stable when each digit pass is stable. Not comparison-based.',
+    bestCase: 'O(n * d)',
+    averageCase: 'O(n * d)',
+    worstCase: 'O(n * d)',
+    spaceComplexity: 'O(n + k)',
+    pythonCode: `def counting_sort_by_digit(arr, exp):
+    n = len(arr)
+    out = [0] * n
+    count = [0] * 10
+    for i in range(n):
+        idx = (arr[i] // exp) % 10
+        count[idx] += 1
+    for i in range(1, 10):
+        count[i] += count[i - 1]
+    for i in range(n - 1, -1, -1):
+        idx = (arr[i] // exp) % 10
+        out[count[idx] - 1] = arr[i]
+        count[idx] -= 1
+    arr[:] = out
+
+def radix_sort(arr):
+    if not arr:
+        return
+    max_val = max(arr)
+    exp = 1
+    while max_val // exp > 0:
+        counting_sort_by_digit(arr, exp)
+        exp *= 10
+
+arr = [4, 2, 7, 1, 9, 3, 6, 5]
+radix_sort(arr)
+print("Sorted:", arr)`,
+  },
+  {
+    id: 'bucket-sort',
+    name: 'Bucket Sort',
+    category: 'sorting',
+    description:
+      'Distributes elements into a number of buckets, sorts each bucket (e.g. with insertion sort), then concatenates the buckets. Works well when the input is uniformly distributed over a range.',
+    whatFor:
+      'Bucket sort is used when the input is uniformly distributed over an interval. Average case is O(n) when bucket count is chosen well.',
+    bestUseCase:
+      'Best for uniformly distributed floating-point numbers in [0, 1) or integers in a range. Often used as a subroutine in radix sort.',
+    performance:
+      'Average O(n + k) with k buckets; worst O(n²) if all fall in one bucket. Space O(n). Stability depends on the inner sort.',
+    bestCase: 'O(n + k)',
+    averageCase: 'O(n + k)',
+    worstCase: 'O(n²)',
+    spaceComplexity: 'O(n)',
+    pythonCode: `def bucket_sort(arr, bucket_count=10):
+    if not arr:
+        return
+    min_val, max_val = min(arr), max(arr)
+    bucket_range = (max_val - min_val) / bucket_count or 1
+    buckets = [[] for _ in range(bucket_count)]
+    for x in arr:
+        idx = min(int((x - min_val) / bucket_range), bucket_count - 1)
+        buckets[idx].append(x)
+    for b in buckets:
+        b.sort()
+    arr[:] = [x for b in buckets for x in b]
+
+arr = [4, 2, 7, 1, 9, 3, 6, 5]
+bucket_sort(arr)
+print("Sorted:", arr)`,
+  },
 ];
 
 export const algorithmsByCategory = {

@@ -21,7 +21,7 @@ import { FlowStep } from '@/types/algorithms';
 export const FLOW_DIAGRAM_HEIGHT_PX = 360;
 
 type DiagramLayout = 'vertical' | 'horizontal';
-type DiagramVariant = 'linear-search' | 'binary-search' | 'insertion-sort' | 'merge-sort' | 'bubble-sort' | 'quick-sort';
+type DiagramVariant = 'linear-search' | 'binary-search' | 'insertion-sort' | 'merge-sort' | 'bubble-sort' | 'quick-sort' | 'selection-sort' | 'heap-sort' | 'counting-sort' | 'radix-sort' | 'bucket-sort';
 
 const VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
   start: { x: 250, y: 0 },
@@ -124,6 +124,33 @@ const SORT_VERTICAL: Record<string, { x: number; y: number }> = {
   'quick-place-pivot': { x: 250, y: 340 },
   'quick-recurse': { x: 250, y: 400 },
   'quick-done': { x: 450, y: 120 },
+  'sel-start': { x: 250, y: 0 },
+  'sel-outer': { x: 250, y: 60 },
+  'sel-inner': { x: 250, y: 120 },
+  'sel-compare': { x: 250, y: 200 },
+  'sel-update-min': { x: 80, y: 280 },
+  'sel-swap': { x: 250, y: 340 },
+  'sel-done': { x: 450, y: 120 },
+  'heap-start': { x: 250, y: 0 },
+  'heap-build': { x: 250, y: 60 },
+  'heap-swap': { x: 250, y: 140 },
+  'heap-sift': { x: 250, y: 220 },
+  'heap-done': { x: 450, y: 120 },
+  'count-start': { x: 250, y: 0 },
+  'count-count': { x: 250, y: 80 },
+  'count-prefix': { x: 250, y: 160 },
+  'count-place': { x: 250, y: 240 },
+  'count-done': { x: 450, y: 120 },
+  'radix-start': { x: 250, y: 0 },
+  'radix-digit': { x: 250, y: 80 },
+  'radix-bucket': { x: 250, y: 160 },
+  'radix-concat': { x: 250, y: 240 },
+  'radix-done': { x: 450, y: 120 },
+  'bucket-start': { x: 250, y: 0 },
+  'bucket-distribute': { x: 250, y: 80 },
+  'bucket-sort': { x: 250, y: 160 },
+  'bucket-concat': { x: 250, y: 240 },
+  'bucket-done': { x: 450, y: 120 },
 };
 
 function getPositions(layout: DiagramLayout, variant: DiagramVariant): Record<string, { x: number; y: number }> {
@@ -133,7 +160,7 @@ function getPositions(layout: DiagramLayout, variant: DiagramVariant): Record<st
   if (variant === 'insertion-sort') {
     return layout === 'horizontal' ? INS_HORIZONTAL_POSITIONS : INS_VERTICAL_POSITIONS;
   }
-  if (variant === 'merge-sort' || variant === 'bubble-sort' || variant === 'quick-sort') {
+  if (variant === 'merge-sort' || variant === 'bubble-sort' || variant === 'quick-sort' || variant === 'selection-sort' || variant === 'heap-sort' || variant === 'counting-sort' || variant === 'radix-sort' || variant === 'bucket-sort') {
     return SORT_VERTICAL;
   }
   return layout === 'horizontal' ? HORIZONTAL_POSITIONS : VERTICAL_POSITIONS;
@@ -256,6 +283,53 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
         { id: 'quick-done', type: 'default', position: positions['quick-done'], data: { label: 'Done' }, style: getNodeStyle('quick-done', currentStep === 'quick-done') },
       ];
     }
+    if (variant === 'selection-sort') {
+      return [
+        { id: 'sel-start', type: 'default', position: positions['sel-start'], data: { label: 'Start' }, style: getNodeStyle('sel-start', currentStep === 'sel-start') },
+        { id: 'sel-outer', type: 'default', position: positions['sel-outer'], data: { label: 'for i = 0 to n-1' }, style: getNodeStyle('sel-outer', currentStep === 'sel-outer') },
+        { id: 'sel-inner', type: 'default', position: positions['sel-inner'], data: { label: 'min_idx = i; scan j' }, style: getNodeStyle('sel-inner', currentStep === 'sel-inner') },
+        { id: 'sel-compare', type: 'default', position: positions['sel-compare'], data: { label: 'arr[j] < arr[min_idx]?' }, style: getDecisionNodeStyle('sel-compare', currentStep === 'sel-compare') },
+        { id: 'sel-update-min', type: 'default', position: positions['sel-update-min'], data: { label: 'min_idx = j' }, style: getNodeStyle('sel-update-min', currentStep === 'sel-update-min') },
+        { id: 'sel-swap', type: 'default', position: positions['sel-swap'], data: { label: 'Swap arr[i], arr[min_idx]' }, style: getNodeStyle('sel-swap', currentStep === 'sel-swap') },
+        { id: 'sel-done', type: 'default', position: positions['sel-done'], data: { label: 'Done' }, style: getNodeStyle('sel-done', currentStep === 'sel-done') },
+      ];
+    }
+    if (variant === 'heap-sort') {
+      return [
+        { id: 'heap-start', type: 'default', position: positions['heap-start'], data: { label: 'Start' }, style: getNodeStyle('heap-start', currentStep === 'heap-start') },
+        { id: 'heap-build', type: 'default', position: positions['heap-build'], data: { label: 'Build max heap' }, style: getNodeStyle('heap-build', currentStep === 'heap-build') },
+        { id: 'heap-swap', type: 'default', position: positions['heap-swap'], data: { label: 'Swap root with end' }, style: getNodeStyle('heap-swap', currentStep === 'heap-swap') },
+        { id: 'heap-sift', type: 'default', position: positions['heap-sift'], data: { label: 'Sift down' }, style: getNodeStyle('heap-sift', currentStep === 'heap-sift') },
+        { id: 'heap-done', type: 'default', position: positions['heap-done'], data: { label: 'Done' }, style: getNodeStyle('heap-done', currentStep === 'heap-done') },
+      ];
+    }
+    if (variant === 'counting-sort') {
+      return [
+        { id: 'count-start', type: 'default', position: positions['count-start'], data: { label: 'Start' }, style: getNodeStyle('count-start', currentStep === 'count-start') },
+        { id: 'count-count', type: 'default', position: positions['count-count'], data: { label: 'Count frequencies' }, style: getNodeStyle('count-count', currentStep === 'count-count') },
+        { id: 'count-prefix', type: 'default', position: positions['count-prefix'], data: { label: 'Prefix sum' }, style: getNodeStyle('count-prefix', currentStep === 'count-prefix') },
+        { id: 'count-place', type: 'default', position: positions['count-place'], data: { label: 'Place in order' }, style: getNodeStyle('count-place', currentStep === 'count-place') },
+        { id: 'count-done', type: 'default', position: positions['count-done'], data: { label: 'Done' }, style: getNodeStyle('count-done', currentStep === 'count-done') },
+      ];
+    }
+    if (variant === 'radix-sort') {
+      return [
+        { id: 'radix-start', type: 'default', position: positions['radix-start'], data: { label: 'Start' }, style: getNodeStyle('radix-start', currentStep === 'radix-start') },
+        { id: 'radix-digit', type: 'default', position: positions['radix-digit'], data: { label: 'Sort by digit' }, style: getNodeStyle('radix-digit', currentStep === 'radix-digit') },
+        { id: 'radix-bucket', type: 'default', position: positions['radix-bucket'], data: { label: 'Bucket by digit' }, style: getNodeStyle('radix-bucket', currentStep === 'radix-bucket') },
+        { id: 'radix-concat', type: 'default', position: positions['radix-concat'], data: { label: 'Concat' }, style: getNodeStyle('radix-concat', currentStep === 'radix-concat') },
+        { id: 'radix-done', type: 'default', position: positions['radix-done'], data: { label: 'Done' }, style: getNodeStyle('radix-done', currentStep === 'radix-done') },
+      ];
+    }
+    if (variant === 'bucket-sort') {
+      return [
+        { id: 'bucket-start', type: 'default', position: positions['bucket-start'], data: { label: 'Start' }, style: getNodeStyle('bucket-start', currentStep === 'bucket-start') },
+        { id: 'bucket-distribute', type: 'default', position: positions['bucket-distribute'], data: { label: 'Distribute to buckets' }, style: getNodeStyle('bucket-distribute', currentStep === 'bucket-distribute') },
+        { id: 'bucket-sort', type: 'default', position: positions['bucket-sort'], data: { label: 'Sort each bucket' }, style: getNodeStyle('bucket-sort', currentStep === 'bucket-sort') },
+        { id: 'bucket-concat', type: 'default', position: positions['bucket-concat'], data: { label: 'Concat' }, style: getNodeStyle('bucket-concat', currentStep === 'bucket-concat') },
+        { id: 'bucket-done', type: 'default', position: positions['bucket-done'], data: { label: 'Done' }, style: getNodeStyle('bucket-done', currentStep === 'bucket-done') },
+      ];
+    }
     return [
       { id: 'start', type: 'default', position: positions.start, data: { label: 'Start' }, style: getNodeStyle('start', currentStep === 'start') },
       { id: 'init', type: 'default', position: positions.init, data: { label: 'i = 0' }, style: getNodeStyle('init', currentStep === 'init') },
@@ -332,6 +406,52 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
         { id: 'e-quick-place-recurse', source: 'quick-place-pivot', target: 'quick-recurse', style: { stroke: currentStep === 'quick-place-pivot' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-place-pivot' ? 2.5 : 1.5 }, animated: currentStep === 'quick-place-pivot' },
         { id: 'e-quick-recurse-pivot', source: 'quick-recurse', target: 'quick-pivot', style: { stroke: currentStep === 'quick-recurse' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-recurse' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'quick-recurse' },
         { id: 'e-quick-start-done', source: 'quick-start', target: 'quick-done', style: { stroke: currentStep === 'quick-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-done' ? 2.5 : 1.5 }, animated: currentStep === 'quick-done' },
+      ];
+    }
+    if (variant === 'selection-sort') {
+      return [
+        { id: 'e-sel-start-outer', source: 'sel-start', target: 'sel-outer', style: { stroke: currentStep === 'sel-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-start' ? 2.5 : 1.5 }, animated: currentStep === 'sel-start' },
+        { id: 'e-sel-outer-inner', source: 'sel-outer', target: 'sel-inner', style: { stroke: currentStep === 'sel-outer' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-outer' ? 2.5 : 1.5 }, animated: currentStep === 'sel-outer' },
+        { id: 'e-sel-inner-compare', source: 'sel-inner', target: 'sel-compare', style: { stroke: currentStep === 'sel-inner' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-inner' ? 2.5 : 1.5 }, animated: currentStep === 'sel-inner' },
+        { id: 'e-sel-compare-update', source: 'sel-compare', target: 'sel-update-min', label: 'Yes', style: { stroke: currentStep === 'sel-compare' || currentStep === 'sel-update-min' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-compare' || currentStep === 'sel-update-min' ? 2.5 : 1.5 }, animated: currentStep === 'sel-compare' || currentStep === 'sel-update-min', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-sel-compare-swap', source: 'sel-compare', target: 'sel-swap', label: 'No', style: { stroke: currentStep === 'sel-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-swap' ? 2.5 : 1.5 }, animated: currentStep === 'sel-swap', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-sel-update-inner', source: 'sel-update-min', target: 'sel-inner', style: { stroke: currentStep === 'sel-update-min' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-update-min' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'sel-update-min' },
+        { id: 'e-sel-swap-outer', source: 'sel-swap', target: 'sel-outer', style: { stroke: currentStep === 'sel-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-swap' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'sel-swap' },
+        { id: 'e-sel-outer-done', source: 'sel-outer', target: 'sel-done', style: { stroke: currentStep === 'sel-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'sel-done' ? 2.5 : 1.5 }, animated: currentStep === 'sel-done' },
+      ];
+    }
+    if (variant === 'heap-sort') {
+      return [
+        { id: 'e-heap-start-build', source: 'heap-start', target: 'heap-build', style: { stroke: currentStep === 'heap-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'heap-start' ? 2.5 : 1.5 }, animated: currentStep === 'heap-start' },
+        { id: 'e-heap-build-swap', source: 'heap-build', target: 'heap-swap', style: { stroke: currentStep === 'heap-build' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'heap-build' ? 2.5 : 1.5 }, animated: currentStep === 'heap-build' },
+        { id: 'e-heap-swap-sift', source: 'heap-swap', target: 'heap-sift', style: { stroke: currentStep === 'heap-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'heap-swap' ? 2.5 : 1.5 }, animated: currentStep === 'heap-swap' },
+        { id: 'e-heap-sift-swap', source: 'heap-sift', target: 'heap-swap', style: { stroke: currentStep === 'heap-sift' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'heap-sift' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'heap-sift' },
+        { id: 'e-heap-build-done', source: 'heap-build', target: 'heap-done', style: { stroke: currentStep === 'heap-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'heap-done' ? 2.5 : 1.5 }, animated: currentStep === 'heap-done' },
+      ];
+    }
+    if (variant === 'counting-sort') {
+      return [
+        { id: 'e-count-start-count', source: 'count-start', target: 'count-count', style: { stroke: currentStep === 'count-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'count-start' ? 2.5 : 1.5 }, animated: currentStep === 'count-start' },
+        { id: 'e-count-count-prefix', source: 'count-count', target: 'count-prefix', style: { stroke: currentStep === 'count-count' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'count-count' ? 2.5 : 1.5 }, animated: currentStep === 'count-count' },
+        { id: 'e-count-prefix-place', source: 'count-prefix', target: 'count-place', style: { stroke: currentStep === 'count-prefix' || currentStep === 'count-place' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'count-prefix' || currentStep === 'count-place' ? 2.5 : 1.5 }, animated: currentStep === 'count-prefix' || currentStep === 'count-place' },
+        { id: 'e-count-place-done', source: 'count-place', target: 'count-done', style: { stroke: currentStep === 'count-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'count-done' ? 2.5 : 1.5 }, animated: currentStep === 'count-done' },
+      ];
+    }
+    if (variant === 'radix-sort') {
+      return [
+        { id: 'e-radix-start-digit', source: 'radix-start', target: 'radix-digit', style: { stroke: currentStep === 'radix-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'radix-start' ? 2.5 : 1.5 }, animated: currentStep === 'radix-start' },
+        { id: 'e-radix-digit-bucket', source: 'radix-digit', target: 'radix-bucket', style: { stroke: currentStep === 'radix-digit' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'radix-digit' ? 2.5 : 1.5 }, animated: currentStep === 'radix-digit' },
+        { id: 'e-radix-bucket-concat', source: 'radix-bucket', target: 'radix-concat', style: { stroke: currentStep === 'radix-bucket' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'radix-bucket' ? 2.5 : 1.5 }, animated: currentStep === 'radix-bucket' },
+        { id: 'e-radix-concat-digit', source: 'radix-concat', target: 'radix-digit', style: { stroke: currentStep === 'radix-concat' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'radix-concat' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'radix-concat' },
+        { id: 'e-radix-digit-done', source: 'radix-digit', target: 'radix-done', style: { stroke: currentStep === 'radix-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'radix-done' ? 2.5 : 1.5 }, animated: currentStep === 'radix-done' },
+      ];
+    }
+    if (variant === 'bucket-sort') {
+      return [
+        { id: 'e-bucket-start-distribute', source: 'bucket-start', target: 'bucket-distribute', style: { stroke: currentStep === 'bucket-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bucket-start' ? 2.5 : 1.5 }, animated: currentStep === 'bucket-start' },
+        { id: 'e-bucket-distribute-sort', source: 'bucket-distribute', target: 'bucket-sort', style: { stroke: currentStep === 'bucket-distribute' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bucket-distribute' ? 2.5 : 1.5 }, animated: currentStep === 'bucket-distribute' },
+        { id: 'e-bucket-sort-concat', source: 'bucket-sort', target: 'bucket-concat', style: { stroke: currentStep === 'bucket-sort' || currentStep === 'bucket-concat' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bucket-sort' || currentStep === 'bucket-concat' ? 2.5 : 1.5 }, animated: currentStep === 'bucket-sort' || currentStep === 'bucket-concat' },
+        { id: 'e-bucket-concat-done', source: 'bucket-concat', target: 'bucket-done', style: { stroke: currentStep === 'bucket-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bucket-done' ? 2.5 : 1.5 }, animated: currentStep === 'bucket-done' },
       ];
     }
     return [

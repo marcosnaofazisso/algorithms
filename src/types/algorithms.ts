@@ -84,4 +84,37 @@ export type FlowStep =
   | 'quick-swap'
   | 'quick-place-pivot'
   | 'quick-recurse'
-  | 'quick-done';
+  | 'quick-done'
+  // Selection sort
+  | 'sel-start'
+  | 'sel-outer'
+  | 'sel-inner'
+  | 'sel-compare'
+  | 'sel-update-min'
+  | 'sel-swap'
+  | 'sel-done'
+  // Heap sort
+  | 'heap-start'
+  | 'heap-build'
+  | 'heapify'
+  | 'heap-swap'
+  | 'heap-sift'
+  | 'heap-done'
+  // Counting sort
+  | 'count-start'
+  | 'count-count'
+  | 'count-prefix'
+  | 'count-place'
+  | 'count-done'
+  // Radix sort
+  | 'radix-start'
+  | 'radix-digit'
+  | 'radix-bucket'
+  | 'radix-concat'
+  | 'radix-done'
+  // Bucket sort
+  | 'bucket-start'
+  | 'bucket-distribute'
+  | 'bucket-sort'
+  | 'bucket-concat'
+  | 'bucket-done';

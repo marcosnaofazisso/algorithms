@@ -7,6 +7,11 @@ import InsertionSortViz from './InsertionSortViz';
 import MergeSortViz from './MergeSortViz';
 import BubbleSortViz from './BubbleSortViz';
 import QuickSortViz from './QuickSortViz';
+import SelectionSortViz from './SelectionSortViz';
+import HeapSortViz from './HeapSortViz';
+import CountingSortViz from './CountingSortViz';
+import RadixSortViz from './RadixSortViz';
+import BucketSortViz from './BucketSortViz';
 import HomePage from './HomePage';
 import { ThemeSwitch } from './ThemeSwitch';
 import { Separator } from './ui/separator';
@@ -35,7 +40,7 @@ export default function AlgorithmLayout() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1 tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold mb-1 tracking-tight text-gray-900 dark:text-white hover:cursor-pointer" onClick={() => navigate('/')}>
               Algorithm
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -75,6 +80,21 @@ export default function AlgorithmLayout() {
             )}
             {selectedAlgorithm.id === 'quick-sort' && (
               <QuickSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'selection-sort' && (
+              <SelectionSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'heap-sort' && (
+              <HeapSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'counting-sort' && (
+              <CountingSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'radix-sort' && (
+              <RadixSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'bucket-sort' && (
+              <BucketSortViz algorithm={selectedAlgorithm} />
             )}
           </div>
         ) : (
