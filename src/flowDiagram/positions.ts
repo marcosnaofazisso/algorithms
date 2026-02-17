@@ -129,18 +129,35 @@ const SORT_VERTICAL: PositionMap = {
   'bucket-done': { x: 450, y: 120 },
 };
 
+const BT_VERTICAL_POSITIONS: PositionMap = {
+  'bt-start': { x: 280, y: 0 },
+  'bt-action': { x: 280, y: 80 },
+  'bt-search': { x: 80, y: 180 },
+  'bt-insert': { x: 280, y: 180 },
+  'bt-remove': { x: 480, y: 180 },
+  'bt-invert': { x: 280, y: 280 },
+  'bt-done': { x: 280, y: 380 },
+};
+
 const VARIANTS_SORT_VERTICAL_ONLY: DiagramVariant[] = [
   'merge-sort', 'bubble-sort', 'quick-sort', 'selection-sort', 'heap-sort',
   'counting-sort', 'radix-sort', 'bucket-sort',
 ];
 
+const VARIANTS_TREE: DiagramVariant[] = ['binary-tree'];
+
 const POSITIONS_BY_VARIANT_LAYOUT: Partial<Record<DiagramVariant, Record<DiagramLayout, PositionMap>>> = {
   'linear-search': { vertical: VERTICAL_POSITIONS, horizontal: HORIZONTAL_POSITIONS },
   'binary-search': { vertical: BINARY_VERTICAL_POSITIONS, horizontal: BINARY_HORIZONTAL_POSITIONS },
   'insertion-sort': { vertical: INS_VERTICAL_POSITIONS, horizontal: INS_HORIZONTAL_POSITIONS },
+  'binary-tree': { vertical: BT_VERTICAL_POSITIONS, horizontal: BT_VERTICAL_POSITIONS },
 };
 
 export function getPositions(layout: DiagramLayout, variant: DiagramVariant): PositionMap {
+  if (VARIANTS_TREE.includes(variant)) {
+    const byLayout = POSITIONS_BY_VARIANT_LAYOUT[variant];
+    return byLayout ? byLayout[layout] : BT_VERTICAL_POSITIONS;
+  }
   if (VARIANTS_SORT_VERTICAL_ONLY.includes(variant)) {
     return SORT_VERTICAL;
   }

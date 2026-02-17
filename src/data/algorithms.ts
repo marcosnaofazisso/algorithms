@@ -447,9 +447,73 @@ arr = [4, 2, 7, 1, 9, 3, 6, 5]
 bucket_sort(arr)
 print("Sorted:", arr)`,
   },
+  {
+    id: 'binary-tree',
+    name: 'Binary Tree (BST)',
+    category: 'trees',
+    description:
+      'A binary search tree (BST) where each node has at most two children: left (smaller) and right (larger). Supports search, insert, remove, and invert operations.',
+    whatFor:
+      'Binary trees are used to store sorted data for fast lookup, insertion, and deletion. Invert swaps left and right subtrees at every node, useful for mirroring the tree.',
+    bestUseCase:
+      'Best when you need ordered data with O(log n) average operations. Search and insert follow the same path; remove handles 0, 1, or 2 children; invert is O(n) and in-place.',
+    performance:
+      'Search, insert, remove: O(h) where h is height (O(log n) average for random keys, O(n) worst if unbalanced). Invert: O(n). Space O(n) for the tree.',
+    bestCase: 'O(log n)',
+    averageCase: 'O(log n)',
+    worstCase: 'O(n)',
+    spaceComplexity: 'O(n)',
+    pythonCode: `class Node:
+    def __init__(self, val):
+        self.val = val
+        self.left = self.right = None
+
+def search(root, key):
+    if not root or root.val == key:
+        return root
+    return search(root.left, key) if key < root.val else search(root.right, key)
+
+def insert(root, key):
+    if not root:
+        return Node(key)
+    if key < root.val:
+        root.left = insert(root.left, key)
+    elif key > root.val:
+        root.right = insert(root.right, key)
+    return root
+
+def min_node(node):
+    while node.left:
+        node = node.left
+    return node
+
+def remove(root, key):
+    if not root:
+        return root
+    if key < root.val:
+        root.left = remove(root.left, key)
+    elif key > root.val:
+        root.right = remove(root.right, key)
+    else:
+        if not root.left:
+            return root.right
+        if not root.right:
+            return root.left
+        succ = min_node(root.right)
+        root.val = succ.val
+        root.right = remove(root.right, succ.val)
+    return root
+
+def invert(root):
+    if not root:
+        return root
+    root.left, root.right = invert(root.right), invert(root.left)
+    return root`,
+  },
 ];
 
 export const algorithmsByCategory = {
   search: algorithms.filter((algo) => algo.category === 'search'),
   sorting: algorithms.filter((algo) => algo.category === 'sorting'),
+  trees: algorithms.filter((algo) => algo.category === 'trees'),
 };

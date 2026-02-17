@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-type CategoryFilter = 'all' | 'search' | 'sorting';
+type CategoryFilter = 'all' | 'search' | 'sorting' | 'trees';
 
 export default function HomePage() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
@@ -22,7 +22,9 @@ export default function HomePage() {
         ? algorithms
         : categoryFilter === 'search'
           ? algorithmsByCategory.search
-          : algorithmsByCategory.sorting;
+          : categoryFilter === 'trees'
+            ? algorithmsByCategory.trees
+            : algorithmsByCategory.sorting;
     const query = searchQuery.trim().toLowerCase();
     if (!query) return byCategory;
     return byCategory.filter((algo) =>
@@ -61,6 +63,7 @@ export default function HomePage() {
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="search">Search</SelectItem>
             <SelectItem value="sorting">Sort</SelectItem>
+            <SelectItem value="trees">Trees</SelectItem>
           </SelectContent>
         </Select>
       </div>

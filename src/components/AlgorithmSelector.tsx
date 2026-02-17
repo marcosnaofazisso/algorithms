@@ -34,7 +34,7 @@ export default function AlgorithmSelector({
         value={selectedValue || 'home'}
         onValueChange={onSelect}
       >
-        <SelectTrigger className="w-[140px] h-9 p-2 text-sm">
+        <SelectTrigger className="w-[160px] h-9 p-2 text-sm">
           <SelectValue placeholder="Home" />
         </SelectTrigger>
         <SelectContent>
@@ -52,6 +52,15 @@ export default function AlgorithmSelector({
           <SelectGroup>
             <SelectLabel>Sort</SelectLabel>
             {algorithmsByCategory.sorting.map((algo) => (
+              <SelectItem key={algo.id} value={algo.id}>
+                {algo.name}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+          <SelectSeparator />
+          <SelectGroup>
+            <SelectLabel>Trees</SelectLabel>
+            {algorithmsByCategory.trees.map((algo) => (
               <SelectItem key={algo.id} value={algo.id}>
                 {algo.name}
               </SelectItem>

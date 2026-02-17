@@ -232,6 +232,29 @@ const BUCKET_SORT: FlowDefinition = {
   ],
 };
 
+const BINARY_TREE: FlowDefinition = {
+  nodes: [
+    { id: 'bt-start', label: 'Start' },
+    { id: 'bt-action', label: 'Choose action', decision: true },
+    { id: 'bt-search', label: 'Search: compare with node' },
+    { id: 'bt-insert', label: 'Insert: find place, add node' },
+    { id: 'bt-remove', label: 'Remove: 0/1/2 children' },
+    { id: 'bt-invert', label: 'Invert: swap left ↔ right' },
+    { id: 'bt-done', label: 'Done' },
+  ],
+  edges: [
+    { id: 'e-bt-start-action', source: 'bt-start', target: 'bt-action', activeSteps: ['bt-start'] },
+    { id: 'e-bt-action-search', source: 'bt-action', target: 'bt-search', label: 'Search', activeSteps: ['bt-search'] },
+    { id: 'e-bt-action-insert', source: 'bt-action', target: 'bt-insert', label: 'Insert', activeSteps: ['bt-insert'] },
+    { id: 'e-bt-action-remove', source: 'bt-action', target: 'bt-remove', label: 'Remove', activeSteps: ['bt-remove'] },
+    { id: 'e-bt-action-invert', source: 'bt-action', target: 'bt-invert', label: 'Invert', activeSteps: ['bt-invert'] },
+    { id: 'e-bt-search-done', source: 'bt-search', target: 'bt-done', activeSteps: ['bt-done'] },
+    { id: 'e-bt-insert-done', source: 'bt-insert', target: 'bt-done', activeSteps: ['bt-done'] },
+    { id: 'e-bt-remove-done', source: 'bt-remove', target: 'bt-done', activeSteps: ['bt-done'] },
+    { id: 'e-bt-invert-done', source: 'bt-invert', target: 'bt-done', activeSteps: ['bt-done'] },
+  ],
+};
+
 export const FLOW_DEFINITIONS: Record<DiagramVariant, FlowDefinition> = {
   'linear-search': LINEAR_SEARCH,
   'binary-search': BINARY_SEARCH,
@@ -244,4 +267,5 @@ export const FLOW_DEFINITIONS: Record<DiagramVariant, FlowDefinition> = {
   'counting-sort': COUNTING_SORT,
   'radix-sort': RADIX_SORT,
   'bucket-sort': BUCKET_SORT,
+  'binary-tree': BINARY_TREE,
 };

@@ -1,7 +1,7 @@
 export interface Algorithm {
   id: string;
   name: string;
-  category: 'search' | 'sorting';
+  category: 'search' | 'sorting' | 'trees';
   description: string;
   /** What the algorithm is for (shown in "Read more") */
   whatFor?: string;
@@ -117,4 +117,12 @@ export type FlowStep =
   | 'bucket-distribute'
   | 'bucket-sort'
   | 'bucket-concat'
-  | 'bucket-done';
+  | 'bucket-done'
+  // Binary tree
+  | 'bt-start'
+  | 'bt-action'
+  | 'bt-search'
+  | 'bt-insert'
+  | 'bt-remove'
+  | 'bt-invert'
+  | 'bt-done';

@@ -11,6 +11,7 @@ import HeapSortViz from '@/components/HeapSortViz';
 import CountingSortViz from '@/components/CountingSortViz';
 import RadixSortViz from '@/components/RadixSortViz';
 import BucketSortViz from '@/components/BucketSortViz';
+import BinaryTreeViz from '@/components/BinaryTreeViz';
 
 export interface AlgorithmVizProps {
   algorithm: Algorithm;
@@ -28,6 +29,7 @@ export const algorithmVizRegistry: Record<string, ComponentType<AlgorithmVizProp
   'counting-sort': CountingSortViz,
   'radix-sort': RadixSortViz,
   'bucket-sort': BucketSortViz,
+  'binary-tree': BinaryTreeViz,
 };
 
 export function getVizComponent(algorithmId: string | undefined): ComponentType<AlgorithmVizProps> | null {
