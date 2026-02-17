@@ -1,3 +1,5 @@
+export type CodeLanguageId = 'python' | 'java' | 'csharp' | 'php' | 'node' | 'go' | 'rust';
+
 export interface Algorithm {
   id: string;
   name: string;
@@ -13,7 +15,7 @@ export interface Algorithm {
   averageCase: string;
   worstCase: string;
   spaceComplexity: string;
-  pythonCode: string;
+  code: Record<CodeLanguageId, string>;
 }
 
 export interface VisualizationState {

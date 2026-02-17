@@ -414,7 +414,7 @@ export default function BinaryTreeViz({ algorithm }: BinaryTreeVizProps) {
         </CardContent>
       </Card>
 
-      <CodeSnippet code={algorithm.pythonCode} />
+      <CodeSnippet codeByLanguage={algorithm.code} />
     </div>
   );
 }

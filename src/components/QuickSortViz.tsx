@@ -230,7 +230,7 @@ export default function QuickSortViz({ algorithm }: QuickSortVizProps) {
       </div>
 
       <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
-      <CodeSnippet code={algorithm.pythonCode} />
+      <CodeSnippet codeByLanguage={algorithm.code} />
     </div>
   );
 }

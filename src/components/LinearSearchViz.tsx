@@ -467,7 +467,7 @@ export default function LinearSearchViz({ algorithm }: LinearSearchVizProps) {
       <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
 
       {/* Code */}
-      <CodeSnippet code={algorithm.pythonCode} />
+      <CodeSnippet codeByLanguage={algorithm.code} />
     </div>
   );
 }

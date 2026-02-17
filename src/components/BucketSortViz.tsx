@@ -220,7 +220,7 @@ export default function BucketSortViz({ algorithm }: BucketSortVizProps) {
         </ResizablePanelGroup>
       </div>
       <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
-      <CodeSnippet code={algorithm.pythonCode} />
+      <CodeSnippet codeByLanguage={algorithm.code} />
     </div>
   );
 }

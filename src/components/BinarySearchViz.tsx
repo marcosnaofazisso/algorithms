@@ -456,7 +456,7 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
 
       <DataVisualization state={visualizationState} lastRunDurationMs={lastRunDurationMs} speed={speed} />
 
-      <CodeSnippet code={algorithm.pythonCode} />
+      <CodeSnippet codeByLanguage={algorithm.code} />
     </div>
   );
 }
