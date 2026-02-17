@@ -34,7 +34,7 @@ export default function AlgorithmSelector({
         value={selectedValue || 'home'}
         onValueChange={onSelect}
       >
-        <SelectTrigger className="w-[130px] h-9 text-sm">
+        <SelectTrigger className="w-[140px] h-9 p-2 text-sm">
           <SelectValue placeholder="Home" />
         </SelectTrigger>
         <SelectContent>

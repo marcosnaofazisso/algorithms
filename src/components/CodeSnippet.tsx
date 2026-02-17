@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Select } from './ui/select';
+import { NativeSelect } from './ui/native-select';
 
 interface CodeSnippetProps {
   code: string;
@@ -28,7 +28,7 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
       <CardHeader className="code-header py-2 px-4 flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-base">Code</CardTitle>
         <div className="flex items-center gap-2">
-          <Select
+          <NativeSelect
             value={selectedLang}
             onChange={(e) => setSelectedLang(e.target.value)}
             className="w-28 h-8 text-xs"
@@ -38,7 +38,7 @@ export default function CodeSnippet({ code, language = 'python' }: CodeSnippetPr
                 {lang.label}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
           <Button size="sm" variant="outline" onClick={handleCopy} className="h-8 text-xs cursor-pointer">
             Copy
           </Button>

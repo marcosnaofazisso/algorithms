@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Select } from './ui/select';
+import { NativeSelect } from './ui/native-select';
 import DataVisualization from './DataVisualization';
 import FlowDiagram, { FLOW_DIAGRAM_HEIGHT_PX } from './FlowDiagram';
 import CodeSnippet from './CodeSnippet';
@@ -303,7 +303,7 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
             <CardContent className="controls-content space-y-2 px-4 pb-4">
               <div>
                 <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Speed</p>
-                <Select
+                <NativeSelect
                   value={speed}
                   onChange={(e) => setSpeed(e.target.value as Speed)}
                   disabled={isRunning}
@@ -312,7 +312,7 @@ export default function BinarySearchViz({ algorithm }: BinarySearchVizProps) {
                   <option value="slow">Slow</option>
                   <option value="normal">Normal</option>
                   <option value="fast">Fast</option>
-                </Select>
+                </NativeSelect>
               </div>
               <div>
                 <p className="text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">Array size</p>

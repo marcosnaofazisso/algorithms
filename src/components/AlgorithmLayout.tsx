@@ -1,17 +1,7 @@
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { algorithms } from '@/data/algorithms';
+import { getVizComponent } from '@/registry/algorithmVizRegistry';
 import AlgorithmSelector from './AlgorithmSelector';
-import LinearSearchViz from './LinearSearchViz';
-import BinarySearchViz from './BinarySearchViz';
-import InsertionSortViz from './InsertionSortViz';
-import MergeSortViz from './MergeSortViz';
-import BubbleSortViz from './BubbleSortViz';
-import QuickSortViz from './QuickSortViz';
-import SelectionSortViz from './SelectionSortViz';
-import HeapSortViz from './HeapSortViz';
-import CountingSortViz from './CountingSortViz';
-import RadixSortViz from './RadixSortViz';
-import BucketSortViz from './BucketSortViz';
 import HomePage from './HomePage';
 import { ThemeSwitch } from './ThemeSwitch';
 import { Separator } from './ui/separator';
@@ -26,6 +16,8 @@ export default function AlgorithmLayout() {
   const selectedAlgorithm = algorithmId
     ? algorithms.find((algo) => algo.id === algorithmId)
     : null;
+
+  const VizComponent = getVizComponent(algorithmId ?? undefined);
 
   const handleSelect = (value: string) => {
     if (value === 'home') {
@@ -60,41 +52,9 @@ export default function AlgorithmLayout() {
 
         {isHome ? (
           <HomePage />
-        ) : selectedAlgorithm ? (
+        ) : VizComponent && selectedAlgorithm ? (
           <div>
-            {selectedAlgorithm.id === 'linear-search' && (
-              <LinearSearchViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'binary-search' && (
-              <BinarySearchViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'insertion-sort' && (
-              <InsertionSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'merge-sort' && (
-              <MergeSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'bubble-sort' && (
-              <BubbleSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'quick-sort' && (
-              <QuickSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'selection-sort' && (
-              <SelectionSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'heap-sort' && (
-              <HeapSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'counting-sort' && (
-              <CountingSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'radix-sort' && (
-              <RadixSortViz algorithm={selectedAlgorithm} />
-            )}
-            {selectedAlgorithm.id === 'bucket-sort' && (
-              <BucketSortViz algorithm={selectedAlgorithm} />
-            )}
+            <VizComponent algorithm={selectedAlgorithm} />
           </div>
         ) : (
           <div className="py-8 text-center text-gray-600 dark:text-gray-300">
