@@ -21,7 +21,7 @@ import { FlowStep } from '@/types/algorithms';
 export const FLOW_DIAGRAM_HEIGHT_PX = 360;
 
 type DiagramLayout = 'vertical' | 'horizontal';
-type DiagramVariant = 'linear-search' | 'binary-search' | 'insertion-sort';
+type DiagramVariant = 'linear-search' | 'binary-search' | 'insertion-sort' | 'merge-sort' | 'bubble-sort' | 'quick-sort';
 
 const VERTICAL_POSITIONS: Record<string, { x: number; y: number }> = {
   start: { x: 250, y: 0 },
@@ -98,12 +98,43 @@ const INS_HORIZONTAL_POSITIONS: Record<string, { x: number; y: number }> = {
   done: { x: 900, y: 280 },
 };
 
+// Merge / Bubble / Quick: shared compact vertical
+const SORT_VERTICAL: Record<string, { x: number; y: number }> = {
+  start: { x: 250, y: 0 },
+  'merge-start': { x: 250, y: 0 },
+  'merge-divide': { x: 250, y: 60 },
+  'merge-conquer': { x: 250, y: 120 },
+  'merge-merge': { x: 250, y: 180 },
+  'merge-compare': { x: 250, y: 240 },
+  'merge-copy': { x: 80, y: 300 },
+  'merge-copy-remaining': { x: 80, y: 360 },
+  'merge-done': { x: 450, y: 120 },
+  'bubble-start': { x: 250, y: 0 },
+  'bubble-outer': { x: 250, y: 60 },
+  'bubble-inner': { x: 250, y: 120 },
+  'bubble-compare': { x: 250, y: 200 },
+  'bubble-swap': { x: 80, y: 280 },
+  'bubble-no-swap': { x: 420, y: 280 },
+  'bubble-done': { x: 450, y: 120 },
+  'quick-start': { x: 250, y: 0 },
+  'quick-pivot': { x: 250, y: 60 },
+  'quick-partition': { x: 250, y: 120 },
+  'quick-compare': { x: 250, y: 200 },
+  'quick-swap': { x: 80, y: 280 },
+  'quick-place-pivot': { x: 250, y: 340 },
+  'quick-recurse': { x: 250, y: 400 },
+  'quick-done': { x: 450, y: 120 },
+};
+
 function getPositions(layout: DiagramLayout, variant: DiagramVariant): Record<string, { x: number; y: number }> {
   if (variant === 'binary-search') {
     return layout === 'horizontal' ? BINARY_HORIZONTAL_POSITIONS : BINARY_VERTICAL_POSITIONS;
   }
   if (variant === 'insertion-sort') {
     return layout === 'horizontal' ? INS_HORIZONTAL_POSITIONS : INS_VERTICAL_POSITIONS;
+  }
+  if (variant === 'merge-sort' || variant === 'bubble-sort' || variant === 'quick-sort') {
+    return SORT_VERTICAL;
   }
   return layout === 'horizontal' ? HORIZONTAL_POSITIONS : VERTICAL_POSITIONS;
 }
@@ -191,6 +222,40 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
         { id: 'done', type: 'default', position: positions.done, data: { label: 'Done' }, style: getNodeStyle('done', currentStep === 'done') },
       ];
     }
+    if (variant === 'merge-sort') {
+      return [
+        { id: 'merge-start', type: 'default', position: positions['merge-start'], data: { label: 'Start' }, style: getNodeStyle('merge-start', currentStep === 'merge-start') },
+        { id: 'merge-divide', type: 'default', position: positions['merge-divide'], data: { label: 'Size = 1, 2, 4...' }, style: getNodeStyle('merge-divide', currentStep === 'merge-divide') },
+        { id: 'merge-conquer', type: 'default', position: positions['merge-conquer'], data: { label: 'Merge two runs' }, style: getNodeStyle('merge-conquer', currentStep === 'merge-conquer') },
+        { id: 'merge-compare', type: 'default', position: positions['merge-compare'], data: { label: 'Compare left[i], right[j]' }, style: getDecisionNodeStyle('merge-compare', currentStep === 'merge-compare') },
+        { id: 'merge-copy', type: 'default', position: positions['merge-copy'], data: { label: 'Copy smaller' }, style: getNodeStyle('merge-copy', currentStep === 'merge-copy') },
+        { id: 'merge-copy-remaining', type: 'default', position: positions['merge-copy-remaining'], data: { label: 'Copy rest' }, style: getNodeStyle('merge-copy-remaining', currentStep === 'merge-copy-remaining') },
+        { id: 'merge-done', type: 'default', position: positions['merge-done'], data: { label: 'Done' }, style: getNodeStyle('merge-done', currentStep === 'merge-done') },
+      ];
+    }
+    if (variant === 'bubble-sort') {
+      return [
+        { id: 'bubble-start', type: 'default', position: positions['bubble-start'], data: { label: 'Start' }, style: getNodeStyle('bubble-start', currentStep === 'bubble-start') },
+        { id: 'bubble-outer', type: 'default', position: positions['bubble-outer'], data: { label: 'for i = 0 to n-1' }, style: getNodeStyle('bubble-outer', currentStep === 'bubble-outer') },
+        { id: 'bubble-inner', type: 'default', position: positions['bubble-inner'], data: { label: 'for j = 0 to n-1-i' }, style: getNodeStyle('bubble-inner', currentStep === 'bubble-inner') },
+        { id: 'bubble-compare', type: 'default', position: positions['bubble-compare'], data: { label: 'arr[j] > arr[j+1]?' }, style: getDecisionNodeStyle('bubble-compare', currentStep === 'bubble-compare') },
+        { id: 'bubble-swap', type: 'default', position: positions['bubble-swap'], data: { label: 'Swap' }, style: getNodeStyle('bubble-swap', currentStep === 'bubble-swap') },
+        { id: 'bubble-no-swap', type: 'default', position: positions['bubble-no-swap'], data: { label: 'No swap' }, style: getNodeStyle('bubble-no-swap', currentStep === 'bubble-no-swap') },
+        { id: 'bubble-done', type: 'default', position: positions['bubble-done'], data: { label: 'Done' }, style: getNodeStyle('bubble-done', currentStep === 'bubble-done') },
+      ];
+    }
+    if (variant === 'quick-sort') {
+      return [
+        { id: 'quick-start', type: 'default', position: positions['quick-start'], data: { label: 'Start' }, style: getNodeStyle('quick-start', currentStep === 'quick-start') },
+        { id: 'quick-pivot', type: 'default', position: positions['quick-pivot'], data: { label: 'Pivot = arr[high]' }, style: getNodeStyle('quick-pivot', currentStep === 'quick-pivot') },
+        { id: 'quick-partition', type: 'default', position: positions['quick-partition'], data: { label: 'Partition [low..high]' }, style: getNodeStyle('quick-partition', currentStep === 'quick-partition') },
+        { id: 'quick-compare', type: 'default', position: positions['quick-compare'], data: { label: 'arr[j] <= pivot?' }, style: getDecisionNodeStyle('quick-compare', currentStep === 'quick-compare') },
+        { id: 'quick-swap', type: 'default', position: positions['quick-swap'], data: { label: 'Swap to left' }, style: getNodeStyle('quick-swap', currentStep === 'quick-swap') },
+        { id: 'quick-place-pivot', type: 'default', position: positions['quick-place-pivot'], data: { label: 'Place pivot' }, style: getNodeStyle('quick-place-pivot', currentStep === 'quick-place-pivot') },
+        { id: 'quick-recurse', type: 'default', position: positions['quick-recurse'], data: { label: 'Recurse left/right' }, style: getNodeStyle('quick-recurse', currentStep === 'quick-recurse') },
+        { id: 'quick-done', type: 'default', position: positions['quick-done'], data: { label: 'Done' }, style: getNodeStyle('quick-done', currentStep === 'quick-done') },
+      ];
+    }
     return [
       { id: 'start', type: 'default', position: positions.start, data: { label: 'Start' }, style: getNodeStyle('start', currentStep === 'start') },
       { id: 'init', type: 'default', position: positions.init, data: { label: 'i = 0' }, style: getNodeStyle('init', currentStep === 'init') },
@@ -230,6 +295,43 @@ function FlowDiagramInner({ currentStep, variant = 'linear-search', locked = tru
         { id: 'e-jdec-whilej', source: 'j-decrement', target: 'while-j', style: { stroke: currentStep === 'j-decrement' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'j-decrement' ? 2.5 : 1.5 }, animated: currentStep === 'j-decrement', type: 'smoothstep' },
         { id: 'e-insert-nexti', source: 'insert', target: 'next-i', style: { stroke: currentStep === 'insert' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'insert' ? 2.5 : 1.5 }, animated: currentStep === 'insert' },
         { id: 'e-nexti-fori', source: 'next-i', target: 'for-i', style: { stroke: currentStep === 'next-i' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'next-i' ? 2.5 : 1.5 }, animated: currentStep === 'next-i', type: 'smoothstep' },
+      ];
+    }
+    if (variant === 'merge-sort') {
+      return [
+        { id: 'e-merge-start-divide', source: 'merge-start', target: 'merge-divide', style: { stroke: currentStep === 'merge-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-start' ? 2.5 : 1.5 }, animated: currentStep === 'merge-start' },
+        { id: 'e-merge-divide-conquer', source: 'merge-divide', target: 'merge-conquer', style: { stroke: currentStep === 'merge-divide' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-divide' ? 2.5 : 1.5 }, animated: currentStep === 'merge-divide' },
+        { id: 'e-merge-conquer-compare', source: 'merge-conquer', target: 'merge-compare', style: { stroke: currentStep === 'merge-conquer' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-conquer' ? 2.5 : 1.5 }, animated: currentStep === 'merge-conquer' },
+        { id: 'e-merge-compare-copy', source: 'merge-compare', target: 'merge-copy', style: { stroke: currentStep === 'merge-compare' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-compare' ? 2.5 : 1.5 }, animated: currentStep === 'merge-compare' },
+        { id: 'e-merge-copy-remaining', source: 'merge-copy', target: 'merge-copy-remaining', style: { stroke: currentStep === 'merge-copy' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-copy' ? 2.5 : 1.5 }, animated: currentStep === 'merge-copy' },
+        { id: 'e-merge-remaining-conquer', source: 'merge-copy-remaining', target: 'merge-conquer', style: { stroke: currentStep === 'merge-copy-remaining' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-copy-remaining' ? 2.5 : 1.5 }, animated: currentStep === 'merge-copy-remaining', type: 'smoothstep' },
+        { id: 'e-merge-divide-done', source: 'merge-divide', target: 'merge-done', style: { stroke: currentStep === 'merge-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'merge-done' ? 2.5 : 1.5 }, animated: currentStep === 'merge-done' },
+      ];
+    }
+    if (variant === 'bubble-sort') {
+      return [
+        { id: 'e-bubble-start-outer', source: 'bubble-start', target: 'bubble-outer', style: { stroke: currentStep === 'bubble-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-start' ? 2.5 : 1.5 }, animated: currentStep === 'bubble-start' },
+        { id: 'e-bubble-outer-inner', source: 'bubble-outer', target: 'bubble-inner', style: { stroke: currentStep === 'bubble-outer' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-outer' ? 2.5 : 1.5 }, animated: currentStep === 'bubble-outer' },
+        { id: 'e-bubble-inner-compare', source: 'bubble-inner', target: 'bubble-compare', style: { stroke: currentStep === 'bubble-inner' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-inner' ? 2.5 : 1.5 }, animated: currentStep === 'bubble-inner' },
+        { id: 'e-bubble-compare-swap', source: 'bubble-compare', target: 'bubble-swap', label: 'Yes', style: { stroke: currentStep === 'bubble-compare' || currentStep === 'bubble-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-compare' || currentStep === 'bubble-swap' ? 2.5 : 1.5 }, animated: currentStep === 'bubble-compare' || currentStep === 'bubble-swap', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-bubble-compare-noswap', source: 'bubble-compare', target: 'bubble-no-swap', label: 'No', style: { stroke: currentStep === 'bubble-no-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-no-swap' ? 2.5 : 1.5 }, animated: currentStep === 'bubble-no-swap', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-bubble-swap-inner', source: 'bubble-swap', target: 'bubble-inner', style: { stroke: currentStep === 'bubble-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-swap' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'bubble-swap' },
+        { id: 'e-bubble-noswap-inner', source: 'bubble-no-swap', target: 'bubble-inner', style: { stroke: currentStep === 'bubble-no-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-no-swap' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'bubble-no-swap' },
+        { id: 'e-bubble-outer-done', source: 'bubble-outer', target: 'bubble-done', style: { stroke: currentStep === 'bubble-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'bubble-done' ? 2.5 : 1.5 }, animated: currentStep === 'bubble-done' },
+      ];
+    }
+    if (variant === 'quick-sort') {
+      return [
+        { id: 'e-quick-start-pivot', source: 'quick-start', target: 'quick-pivot', style: { stroke: currentStep === 'quick-start' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-start' ? 2.5 : 1.5 }, animated: currentStep === 'quick-start' },
+        { id: 'e-quick-pivot-partition', source: 'quick-pivot', target: 'quick-partition', style: { stroke: currentStep === 'quick-pivot' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-pivot' ? 2.5 : 1.5 }, animated: currentStep === 'quick-pivot' },
+        { id: 'e-quick-partition-compare', source: 'quick-partition', target: 'quick-compare', style: { stroke: currentStep === 'quick-partition' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-partition' ? 2.5 : 1.5 }, animated: currentStep === 'quick-partition' },
+        { id: 'e-quick-compare-swap', source: 'quick-compare', target: 'quick-swap', label: 'Yes', style: { stroke: currentStep === 'quick-compare' || currentStep === 'quick-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-compare' || currentStep === 'quick-swap' ? 2.5 : 1.5 }, animated: currentStep === 'quick-compare' || currentStep === 'quick-swap', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-quick-compare-partition', source: 'quick-compare', target: 'quick-partition', label: 'No', style: { stroke: currentStep === 'quick-compare' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-compare' ? 2.5 : 1.5 }, animated: currentStep === 'quick-compare', labelStyle: { fontFamily: '"Noto Serif", serif', fontSize: '12px' }, labelBgStyle: { fill: labelBg } },
+        { id: 'e-quick-swap-partition', source: 'quick-swap', target: 'quick-partition', style: { stroke: currentStep === 'quick-swap' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-swap' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'quick-swap' },
+        { id: 'e-quick-partition-place', source: 'quick-partition', target: 'quick-place-pivot', style: { stroke: currentStep === 'quick-place-pivot' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-place-pivot' ? 2.5 : 1.5 }, animated: currentStep === 'quick-place-pivot' },
+        { id: 'e-quick-place-recurse', source: 'quick-place-pivot', target: 'quick-recurse', style: { stroke: currentStep === 'quick-place-pivot' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-place-pivot' ? 2.5 : 1.5 }, animated: currentStep === 'quick-place-pivot' },
+        { id: 'e-quick-recurse-pivot', source: 'quick-recurse', target: 'quick-pivot', style: { stroke: currentStep === 'quick-recurse' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-recurse' ? 2.5 : 1.5 }, type: 'smoothstep', animated: currentStep === 'quick-recurse' },
+        { id: 'e-quick-start-done', source: 'quick-start', target: 'quick-done', style: { stroke: currentStep === 'quick-done' ? edgeActive : edgeInactive, strokeWidth: currentStep === 'quick-done' ? 2.5 : 1.5 }, animated: currentStep === 'quick-done' },
       ];
     }
     return [

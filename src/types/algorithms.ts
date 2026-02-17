@@ -58,4 +58,30 @@ export type FlowStep =
   | 'j-decrement'
   | 'insert'
   | 'next-i'
-  | 'done';
+  | 'done'
+  // Merge sort
+  | 'merge-start'
+  | 'merge-divide'
+  | 'merge-conquer'
+  | 'merge-merge'
+  | 'merge-compare'
+  | 'merge-copy'
+  | 'merge-copy-remaining'
+  | 'merge-done'
+  // Bubble sort
+  | 'bubble-start'
+  | 'bubble-outer'
+  | 'bubble-inner'
+  | 'bubble-compare'
+  | 'bubble-swap'
+  | 'bubble-no-swap'
+  | 'bubble-done'
+  // Quick sort
+  | 'quick-start'
+  | 'quick-pivot'
+  | 'quick-partition'
+  | 'quick-compare'
+  | 'quick-swap'
+  | 'quick-place-pivot'
+  | 'quick-recurse'
+  | 'quick-done';

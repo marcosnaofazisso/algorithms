@@ -4,6 +4,9 @@ import AlgorithmSelector from './AlgorithmSelector';
 import LinearSearchViz from './LinearSearchViz';
 import BinarySearchViz from './BinarySearchViz';
 import InsertionSortViz from './InsertionSortViz';
+import MergeSortViz from './MergeSortViz';
+import BubbleSortViz from './BubbleSortViz';
+import QuickSortViz from './QuickSortViz';
 import HomePage from './HomePage';
 import { ThemeSwitch } from './ThemeSwitch';
 import { Separator } from './ui/separator';
@@ -63,6 +66,15 @@ export default function AlgorithmLayout() {
             )}
             {selectedAlgorithm.id === 'insertion-sort' && (
               <InsertionSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'merge-sort' && (
+              <MergeSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'bubble-sort' && (
+              <BubbleSortViz algorithm={selectedAlgorithm} />
+            )}
+            {selectedAlgorithm.id === 'quick-sort' && (
+              <QuickSortViz algorithm={selectedAlgorithm} />
             )}
           </div>
         ) : (
